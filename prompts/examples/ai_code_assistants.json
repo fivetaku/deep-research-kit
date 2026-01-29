@@ -1,0 +1,105 @@
+{
+  "task": {
+    "title": "AI Code Assistants Impact on Developer Productivity: Evidence and Best Practices",
+    "objective": "Evaluate the documented productivity impact of AI code assistants (GitHub Copilot, Cursor, Codeium, etc.) and identify optimal adoption strategies for engineering organizations",
+    "type": "comparative"
+  },
+  "context": {
+    "background": "AI code assistants have seen rapid adoption since GitHub Copilot's 2022 launch. Organizations report productivity gains but measurement methodologies vary. Security and code quality concerns persist alongside adoption.",
+    "audience": "technical",
+    "use_case": "Engineering leadership evaluating AI assistant rollout for 500-person engineering org",
+    "prior_knowledge": [
+      "GitHub Copilot claims 55% faster task completion",
+      "Major concerns include security leaks and code quality",
+      "Adoption varies significantly by task type"
+    ]
+  },
+  "questions": {
+    "primary": "What is the evidence-based productivity impact of AI code assistants, and what factors predict successful organizational adoption?",
+    "secondary": [
+      "What metrics are used to measure productivity impact in published studies?",
+      "How does impact vary by programming language and task type?",
+      "What are documented security risks and mitigation strategies?",
+      "How do different tools (Copilot, Cursor, Codeium, etc.) compare?",
+      "What organizational change management practices correlate with successful adoption?",
+      "What is the impact on code quality and technical debt?"
+    ],
+    "hypotheses": [
+      "Productivity gains are highest for boilerplate/repetitive code",
+      "Senior developers benefit more than juniors",
+      "Impact is lower for complex algorithmic tasks"
+    ],
+    "exclusions": [
+      "General LLM capabilities (ChatGPT for coding questions)",
+      "Code review tools (unless AI-powered)",
+      "Testing automation tools",
+      "DevOps/CI-CD tools"
+    ]
+  },
+  "constraints": {
+    "timeframe": {
+      "start": "2022-01-01",
+      "end": "present",
+      "focus_period": "2024"
+    },
+    "geography": {
+      "scope": "global",
+      "regions": [],
+      "exclude_regions": []
+    },
+    "sources": {
+      "required_types": ["peer_reviewed", "industry_reports", "official_docs", "case_studies"],
+      "preferred_domains": ["github.blog", "arxiv.org", "acm.org", "ieee.org"],
+      "excluded_domains": ["medium.com"],
+      "min_quality": "B",
+      "language": ["en"]
+    },
+    "data_requirements": {
+      "quantitative": true,
+      "qualitative": true,
+      "specific_metrics": [
+        "task completion time reduction",
+        "lines of code accepted vs suggested",
+        "developer satisfaction scores",
+        "code quality metrics",
+        "security incident rates"
+      ]
+    }
+  },
+  "output": {
+    "format": "comprehensive_report",
+    "length": {
+      "min_words": 4000,
+      "max_words": 10000,
+      "executive_summary_words": 400
+    },
+    "structure": {
+      "include_executive_summary": true,
+      "include_methodology": true,
+      "include_visualizations": true,
+      "include_raw_data": false,
+      "include_bibliography": true,
+      "include_appendices": true,
+      "generate_website": false
+    },
+    "citation_style": "IEEE",
+    "tone": "technical"
+  },
+  "keywords": [
+    "GitHub Copilot",
+    "AI code assistant",
+    "developer productivity",
+    "code completion",
+    "Cursor AI",
+    "Codeium",
+    "coding AI",
+    "software development AI"
+  ],
+  "special_instructions": [
+    "Compare at least 3 major tools with feature matrices",
+    "Separate internal studies (vendor research) from independent research",
+    "Include adoption best practices section with actionable recommendations",
+    "Note methodological limitations of cited productivity studies",
+    "Address security and IP concerns with specific mitigation strategies"
+  ]
+}

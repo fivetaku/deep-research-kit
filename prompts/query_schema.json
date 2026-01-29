@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Deep Research Query Schema",
+  "description": "Structured schema for generating consistent deep research queries",
+  "type": "object",
+  "required": ["task", "context", "questions", "constraints", "output"],
+  "properties": {
+    "task": {
+      "type": "object",
+      "description": "Primary research objective",
+      "required": ["title", "objective", "type"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Concise research title (5-15 words)",
+          "minLength": 10,
+          "maxLength": 100
+        },
+        "objective": {
+          "type": "string",
+          "description": "Clear statement of what to achieve",
+          "minLength": 20,
+          "maxLength": 500
+        },
+        "type": {
+          "type": "string",
+          "enum": ["exploratory", "comparative", "analytical", "predictive", "evaluative"],
+          "description": "Research methodology type"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "description": "Background and situational context",
+      "required": ["background", "audience", "use_case"],
+      "properties": {
+        "background": {
+          "type": "string",
+          "description": "Why this research matters, current state of knowledge",
+          "minLength": 50,
+          "maxLength": 1000
+        },
+        "audience": {
+          "type": "string",
+          "enum": ["technical", "executive", "academic", "general", "policy_maker"],
+          "description": "Primary reader profile"
+        },
+        "use_case": {
+          "type": "string",
+          "description": "How the research will be used",
+          "minLength": 20,
+          "maxLength": 300
+        },
+        "prior_knowledge": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "What is already known or assumed"
+        }
+      }
+    },
+    "questions": {
+      "type": "object",
+      "description": "Research questions hierarchy",
+      "required": ["primary", "secondary"],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "description": "Main research question",
+          "minLength": 20,
+          "maxLength": 300
+        },
+        "secondary": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 2,
+          "maxItems": 7,
+          "description": "Supporting sub-questions"
+        },
+        "hypotheses": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Testable assumptions to verify"
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Topics explicitly out of scope"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "description": "Research boundaries and limitations",
+      "required": ["timeframe", "geography", "sources"],
+      "properties": {
+        "timeframe": {
+          "type": "object",
+          "required": ["start", "end"],
+          "properties": {
+            "start": {"type": "string", "format": "date", "description": "YYYY-MM-DD or 'YYYY'"},
+            "end": {"type": "string", "description": "'present' or YYYY-MM-DD"},
+            "focus_period": {"type": "string", "description": "Most important timeframe"}
+          }
+        },
+        "geography": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "type": "string",
+              "enum": ["global", "regional", "national", "local"]
+            },
+            "regions": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Specific regions/countries to focus on"
+            },
+            "exclude_regions": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        },
+        "sources": {
+          "type": "object",
+          "required": ["required_types", "min_quality"],
+          "properties": {
+            "required_types": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["peer_reviewed", "official_docs", "industry_reports", "news", "expert_opinion", "case_studies", "patents", "datasets"]
+              },
+              "minItems": 1
+            },
+            "preferred_domains": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "e.g., nature.com, arxiv.org, gov domains"
+            },
+            "excluded_domains": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Sources to avoid"
+            },
+            "min_quality": {
+              "type": "string",
+              "enum": ["A", "B", "C", "D"],
+              "description": "Minimum source quality rating"
+            },
+            "language": {
+              "type": "array",
+              "items": {"type": "string"},
+              "default": ["en"]
+            }
+          }
+        },
+        "data_requirements": {
+          "type": "object",
+          "properties": {
+            "quantitative": {
+              "type": "boolean",
+              "description": "Requires statistical data"
+            },
+            "qualitative": {
+              "type": "boolean",
+              "description": "Requires narrative/interview data"
+            },
+            "specific_metrics": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Specific data points needed"
+            }
+          }
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "description": "Deliverable specifications",
+      "required": ["format", "length", "structure"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["comprehensive_report", "executive_brief", "comparative_analysis", "literature_review", "technical_whitepaper", "policy_brief"],
+          "description": "Output document type"
+        },
+        "length": {
+          "type": "object",
+          "properties": {
+            "min_words": {"type": "integer", "minimum": 500},
+            "max_words": {"type": "integer", "maximum": 50000},
+            "executive_summary_words": {"type": "integer", "default": 500}
+          }
+        },
+        "structure": {
+          "type": "object",
+          "properties": {
+            "include_executive_summary": {"type": "boolean", "default": true},
+            "include_methodology": {"type": "boolean", "default": true},
+            "include_visualizations": {"type": "boolean", "default": false},
+            "include_raw_data": {"type": "boolean", "default": false},
+            "include_bibliography": {"type": "boolean", "default": true},
+            "include_appendices": {"type": "boolean", "default": false},
+            "generate_website": {"type": "boolean", "default": false}
+          }
+        },
+        "citation_style": {
+          "type": "string",
+          "enum": ["APA", "IEEE", "Chicago", "Harvard", "inline"],
+          "default": "APA"
+        },
+        "tone": {
+          "type": "string",
+          "enum": ["academic", "professional", "conversational", "technical"],
+          "default": "professional"
+        }
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 3,
+      "maxItems": 15,
+      "description": "Search keywords and phrases"
+    },
+    "special_instructions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Additional specific requirements"
+    }
+  }
+}

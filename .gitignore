@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Research outputs (user-generated)
+RESEARCH/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Zone identifiers (Windows)
+*Zone.Identifier

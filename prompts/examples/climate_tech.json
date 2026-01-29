@@ -1,0 +1,104 @@
+{
+  "task": {
+    "title": "Climate Tech Startup Investment Landscape 2024-2025",
+    "objective": "Map the current climate tech startup ecosystem, identify high-potential sectors, and analyze investment trends to guide venture capital allocation strategy",
+    "type": "exploratory"
+  },
+  "context": {
+    "background": "Climate tech investment reached $70B in 2023 despite broader VC slowdown. Key areas include carbon capture, green hydrogen, sustainable aviation, and grid-scale storage. Policy tailwinds from IRA and EU Green Deal are accelerating deployment.",
+    "audience": "executive",
+    "use_case": "VC fund thesis development for $200M climate-focused fund",
+    "prior_knowledge": [
+      "IRA provides significant tax incentives for clean energy",
+      "Battery costs have fallen 90% since 2010",
+      "Carbon capture is gaining traction but economics remain challenging"
+    ]
+  },
+  "questions": {
+    "primary": "Which climate tech sectors offer the best risk-adjusted returns for early-stage investment over the next 5 years?",
+    "secondary": [
+      "What are the top-funded climate tech sectors in 2024?",
+      "Which sectors have the highest ratio of Series A+ to seed funding?",
+      "What policy mechanisms are most impactful for startup unit economics?",
+      "Which technologies are transitioning from lab to commercial scale?",
+      "What are the key risks by sector (technology, regulatory, market)?"
+    ],
+    "hypotheses": [
+      "Grid-scale storage will see highest growth due to renewable intermittency",
+      "Green hydrogen remains 3-5 years from commercial viability for most applications",
+      "Carbon capture DAC costs will not reach economic viability without policy support"
+    ],
+    "exclusions": [
+      "Mature renewable technologies (solar panels, onshore wind)",
+      "ESG/impact investing frameworks",
+      "Carbon offset markets",
+      "Nuclear energy"
+    ]
+  },
+  "constraints": {
+    "timeframe": {
+      "start": "2023-01-01",
+      "end": "present",
+      "focus_period": "2024-2025"
+    },
+    "geography": {
+      "scope": "global",
+      "regions": ["United States", "European Union", "China"],
+      "exclude_regions": []
+    },
+    "sources": {
+      "required_types": ["industry_reports", "news", "official_docs", "datasets"],
+      "preferred_domains": ["pitchbook.com", "crunchbase.com", "iea.org", "bnef.com"],
+      "excluded_domains": [],
+      "min_quality": "C",
+      "language": ["en"]
+    },
+    "data_requirements": {
+      "quantitative": true,
+      "qualitative": true,
+      "specific_metrics": [
+        "total funding by sector",
+        "deal count by stage",
+        "average deal size",
+        "notable exits",
+        "policy incentive values"
+      ]
+    }
+  },
+  "output": {
+    "format": "comprehensive_report",
+    "length": {
+      "min_words": 6000,
+      "max_words": 15000,
+      "executive_summary_words": 600
+    },
+    "structure": {
+      "include_executive_summary": true,
+      "include_methodology": true,
+      "include_visualizations": true,
+      "include_raw_data": true,
+      "include_bibliography": true,
+      "include_appendices": true,
+      "generate_website": false
+    },
+    "citation_style": "APA",
+    "tone": "professional"
+  },
+  "keywords": [
+    "climate tech",
+    "clean energy investment",
+    "carbon capture",
+    "green hydrogen",
+    "grid storage",
+    "sustainable aviation fuel",
+    "climate VC",
+    "decarbonization"
+  ],
+  "special_instructions": [
+    "Include sector-by-sector analysis with investment data tables",
+    "Map key policy incentives (IRA, EU Green Deal) to specific sectors",
+    "Identify top 10 most-funded startups per sector",
+    "Note technology readiness levels (TRL) for emerging technologies",
+    "Highlight geographic concentrations of startup activity"
+  ]
+}

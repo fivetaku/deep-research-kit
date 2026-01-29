@@ -1,0 +1,10 @@
+{
+  "name": "fivetaku-plugins",
+  "version": "1.0.0",
+  "description": "Deep research and AI-powered tools for Claude Code",
+  "author": {
+    "name": "fivetaku",
+    "url": "https://github.com/fivetaku"
+  },
+  "repository": "https://github.com/fivetaku/deep-research-kit"
+}

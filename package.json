@@ -1,0 +1,32 @@
+{
+  "name": "@fivetaku/deep-research",
+  "version": "1.1.0",
+  "description": "AI-powered deep research skill for Claude Code - comprehensive research with source verification",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "ai-research",
+    "deep-research",
+    "multi-agent"
+  ],
+  "author": "fivetaku",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fivetaku/deep-research-kit.git"
+  },
+  "homepage": "https://github.com/fivetaku/deep-research-kit",
+  "bin": {
+    "deep-research": "./bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "plugins/deep-research/skills/"
+  ],
+  "scripts": {
+    "postinstall": "node bin/install.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

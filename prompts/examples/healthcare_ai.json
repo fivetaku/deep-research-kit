@@ -1,0 +1,103 @@
+{
+  "task": {
+    "title": "AI Diagnostic Systems in Clinical Healthcare: Adoption and Impact 2023-2025",
+    "objective": "Analyze current AI diagnostic tool adoption rates, clinical outcomes, and implementation barriers in hospital settings to inform technology investment decisions",
+    "type": "analytical"
+  },
+  "context": {
+    "background": "Healthcare AI market projected to reach $188B by 2030. Hospital systems evaluating AI diagnostic tools face challenges in ROI measurement, regulatory compliance, and clinical workflow integration. FDA has approved 500+ AI medical devices.",
+    "audience": "executive",
+    "use_case": "Technology investment roadmap for regional hospital network",
+    "prior_knowledge": [
+      "FDA has approved 500+ AI medical devices",
+      "Major EMR vendors integrating AI features",
+      "Radiology appears to lead in AI adoption"
+    ]
+  },
+  "questions": {
+    "primary": "What is the current state of AI diagnostic tool adoption in US hospitals and what factors determine successful implementation?",
+    "secondary": [
+      "What are the top 10 FDA-approved AI diagnostic tools by adoption rate?",
+      "What clinical outcomes improvements are documented in peer-reviewed studies?",
+      "What are the primary barriers to adoption reported by hospital administrators?",
+      "How do implementation costs compare to documented ROI?",
+      "What regulatory considerations affect deployment decisions?"
+    ],
+    "hypotheses": [
+      "Larger hospital systems have higher AI adoption rates due to IT resources",
+      "Radiology AI tools show highest adoption among specialties",
+      "Integration with existing EMR systems is the primary technical barrier"
+    ],
+    "exclusions": [
+      "Consumer health apps and wearables",
+      "Administrative AI (billing, scheduling)",
+      "Drug discovery and development AI",
+      "Mental health chatbots"
+    ]
+  },
+  "constraints": {
+    "timeframe": {
+      "start": "2023-01-01",
+      "end": "present",
+      "focus_period": "2024-2025"
+    },
+    "geography": {
+      "scope": "national",
+      "regions": ["United States"],
+      "exclude_regions": []
+    },
+    "sources": {
+      "required_types": ["peer_reviewed", "official_docs", "industry_reports"],
+      "preferred_domains": ["pubmed.gov", "fda.gov", "healthaffairs.org", "jamanetwork.com"],
+      "excluded_domains": ["medium.com", "wikipedia.org"],
+      "min_quality": "B",
+      "language": ["en"]
+    },
+    "data_requirements": {
+      "quantitative": true,
+      "qualitative": true,
+      "specific_metrics": [
+        "adoption rate by hospital size",
+        "sensitivity/specificity metrics",
+        "ROI timeline",
+        "implementation cost range",
+        "clinical outcome improvements"
+      ]
+    }
+  },
+  "output": {
+    "format": "comprehensive_report",
+    "length": {
+      "min_words": 5000,
+      "max_words": 12000,
+      "executive_summary_words": 500
+    },
+    "structure": {
+      "include_executive_summary": true,
+      "include_methodology": true,
+      "include_visualizations": true,
+      "include_raw_data": false,
+      "include_bibliography": true,
+      "include_appendices": true,
+      "generate_website": false
+    },
+    "citation_style": "APA",
+    "tone": "professional"
+  },
+  "keywords": [
+    "AI diagnostics",
+    "clinical AI adoption",
+    "FDA approved AI",
+    "radiology AI",
+    "healthcare AI ROI",
+    "hospital AI implementation",
+    "medical imaging AI",
+    "clinical decision support"
+  ],
+  "special_instructions": [
+    "Include comparison table of top AI diagnostic tools with approval dates and clinical evidence",
+    "Highlight regulatory considerations (FDA, HIPAA, state regulations)",
+    "Note any conflicts of interest in cited studies",
+    "Separate findings by hospital size (small, medium, large systems)"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "fivetaku-plugins",
+  "owner": {
+    "name": "fivetaku",
+    "url": "https://github.com/fivetaku"
+  },
+  "description": "Deep research and AI-powered tools for Claude Code",
+  "plugins": [
+    {
+      "name": "deep-research",
+      "description": "AI-powered comprehensive research with source verification and structured outputs",
+      "source": "./plugins/deep-research"
+    }
+  ]
+}
