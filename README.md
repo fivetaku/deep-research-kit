@@ -189,33 +189,33 @@ Transform vague ideas into structured research queries:
 
 ## Why Use This Kit?
 
-**Claude Code에서 딥리서치를 수행하고 결과를 로컬에 저장합니다.**
+**Perform deep research in Claude Code and save results locally.**
 
 ### Core Benefits
 
 | Benefit | Description |
 |---------|-------------|
-| **Local Storage** | 모든 리서치 결과가 로컬 파일로 저장 - 클라우드 의존 없음 |
-| **Structured Output** | 체계적인 폴더 구조 (executive summary, full report, sources) |
-| **Resumable Sessions** | `state.json`으로 언제든 중단/재개 가능 |
-| **Source Quality Grading** | A-E 등급으로 소스 신뢰도 평가 |
-| **Date-Aware Queries** | 자동으로 현재 연도 삽입하여 최신 정보 검색 |
-| **Full Customization** | JSON 스키마로 리서치 범위, 형식, 소스 유형 지정 |
+| **Local Storage** | All research outputs saved as local files - no cloud dependency |
+| **Structured Output** | Organized folder structure (executive summary, full report, sources) |
+| **Resumable Sessions** | Stop and continue anytime with `state.json` |
+| **Source Quality Grading** | A-E ratings for source credibility assessment |
+| **Date-Aware Queries** | Auto-injects current year for fresh results |
+| **Full Customization** | JSON schema for research scope, format, source types |
 
 ### What You Can Do With It
 
 ```
 RESEARCH/{topic}_{timestamp}/
-├── outputs/           → 최종 보고서 (markdown)
-├── sources/           → 원본 소스 데이터
-└── website/           → HTML 시각화
+├── outputs/           → Final reports (markdown)
+├── sources/           → Raw source data
+└── website/           → HTML visualization
 ```
 
-- 📄 보고서를 Notion, Obsidian, 블로그에 바로 복사
-- 🔍 소스 데이터로 추가 분석 및 fact-checking
-- 🌐 HTML 결과물로 팀과 공유
-- 🔄 이전 리서치 세션 이어서 진행
-- 🛠️ 다른 Claude Code 작업과 연계 (코드 생성, 문서 작성 등)
+- 📄 Copy reports directly to Notion, Obsidian, or your blog
+- 🔍 Use source data for additional analysis and fact-checking
+- 🌐 Share HTML outputs with your team
+- 🔄 Resume previous research sessions
+- 🛠️ Integrate with other Claude Code tasks (code generation, documentation)
 
 ## Tips for Best Results
 
