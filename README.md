@@ -1,265 +1,143 @@
-# Deep Research Kit
+# Deep Research
 
-**[한국어 버전 (Korean)](README.ko.md)**
+AI 기반 멀티에이전트 딥리서치 시스템 -- 소스 검증과 구조화된 리포트를 자동으로 생성합니다.
 
-> AI-powered deep research skill for Claude Code - comprehensive research with state management, source verification, and structured outputs.
+---
 
-Transform vague research questions into comprehensive, well-cited reports using Claude's agentic capabilities.
+## 이런 분을 위한 도구입니다
 
-## Demo
+- 특정 주제에 대해 20~50페이지 이상의 종합 리서치 리포트가 필요한 분
+- 여러 소스를 교차 검증하며 신뢰할 수 있는 인사이트를 얻고 싶은 분
+- 학술 논문, 산업 리포트, 뉴스를 아우르는 체계적인 조사가 필요한 분
+- 리서치 결과를 인터랙티브 웹사이트로까지 패키징하고 싶은 분
 
+---
+
+## 어떻게 작동하나요?
+
+7단계 파이프라인을 통해 주제를 분석합니다:
+
+1. **질문 정제** -- 사용자와 대화하며 리서치 범위를 명확히 합니다
+2. **검색 계획** -- 주제를 3-5개 하위 토픽으로 분해하고 검색 전략을 수립합니다
+3. **병렬 수집** -- 멀티에이전트가 동시에 웹, 학술, 기술 문서를 검색합니다
+4. **소스 삼각검증** -- 핵심 주장을 최소 2개 이상 소스로 교차 확인합니다
+5. **지식 합성** -- 수집된 정보를 논리적 구조로 통합합니다
+6. **품질 보증** -- 할루시네이션 체크, 인용 검증, 완성도 점검을 수행합니다
+7. **산출물 패키징** -- 최종 리포트, 참고문헌, 웹사이트를 생성합니다
+
+---
+
+## 설치 방법
+
+### 마켓플레이스에서 설치 (추천)
 ```
-User: /deep-research "Impact of AI code assistants on developer productivity 2024"
-
-Claude:
-1. Asks clarification questions (scope, audience, format)
-2. Creates research plan with subtopics
-3. Deploys parallel agents to search and collect sources
-4. Cross-verifies findings across multiple sources
-5. Generates comprehensive report with citations
-
-Output: RESEARCH/AI_Code_Assistants_20260129_143000/outputs/
-├── 00_executive_summary.md
-├── 01_full_report/
-└── sources/bibliography.md
-```
-
-## Setup
-
-### Install via npx (Recommended)
-
-```bash
-npx github:fivetaku/deep-research-kit
-```
-
-This copies the skill files to `.claude/skills/deep-research/`.
-
-**Options:**
-```bash
-# Install to current project (default if .claude/ exists)
-npx github:fivetaku/deep-research-kit --project
-
-# Install globally to ~/.claude/skills/
-npx github:fivetaku/deep-research-kit --global
+/plugin marketplace add https://github.com/fivetaku/gptaku-plugins
+/plugin install deep-research
 ```
 
-### Manual Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/fivetaku/deep-research-kit.git
-
-# Copy to your project
-cp -r deep-research-kit/plugins/deep-research/skills/deep-research YOUR_PROJECT/.claude/skills/
-
-# Or copy to home directory (global)
-cp -r deep-research-kit/plugins/deep-research/skills/deep-research ~/.claude/skills/
+### 처음 시작하기
+```
+/deep-research AI 코드 어시스턴트의 생산성 영향
 ```
 
-### Uninstall
+---
 
-```bash
-rm -rf ~/.claude/skills/deep-research
-# or
-rm -rf .claude/skills/deep-research
-```
+## 핵심 기능
 
-## Usage
+### 1. 7단계 자동 리서치 파이프라인
+질문 정제부터 최종 리포트까지 전 과정을 자동화합니다. 각 단계의 입출력이 명확히 정의되어 있어 중간에 중단해도 이어서 진행할 수 있습니다.
 
-### Start New Research
+### 2. 멀티에이전트 병렬 검색
+3-5개의 에이전트가 동시에 검색합니다:
+- **웹 리서치 에이전트** -- 최신 뉴스, 트렌드, 시장 데이터
+- **학술/기술 에이전트** -- 논문, 기술 스펙, 공식 문서
+- **교차검증 에이전트** -- 핵심 주장의 팩트체크
 
-```
-/deep-research "your research topic"
-```
+### 3. 소스 품질 등급 시스템 (A-E)
+모든 소스에 품질 등급을 부여합니다:
+- **A**: 피어리뷰, 체계적 리뷰 (Nature, Lancet, IEEE)
+- **B**: 공식 문서, 가이드라인 (FDA, W3C, WHO)
+- **C**: 전문가 의견, 산업 리포트 (Gartner, 컨퍼런스)
+- **D**: 프리프린트, 화이트페이퍼 (arXiv, 기업 블로그)
+- **E**: 일화적, 투기적 (소셜미디어, 포럼)
 
-### With Structured Query (Advanced)
+### 4. 할루시네이션 방지
+- 모든 주장에 인라인 인용 필수
+- Chain-of-Verification으로 핵심 주장 검증
+- 소스 간 모순 발견 시 명시적 고지
 
-```
-/deep-research {
-  "task": {"title": "AI Healthcare Study", "objective": "...", "type": "analytical"},
-  "context": {"audience": "executive", ...},
-  "questions": {"primary": "...", "secondary": [...]},
-  "constraints": {"timeframe": {...}, "sources": {...}},
-  "output": {"format": "comprehensive_report", ...}
-}
-```
+### 5. 세션 관리 및 이어하기
+리서치 세션은 `state.json`으로 상태가 저장되어 언제든 중단하고 이어서 진행할 수 있습니다.
 
-### Resume Previous Session
+### 6. 구조화된 쿼리 빌더
+인터랙티브 쿼리 빌더로 정밀한 리서치 조건을 미리 설정할 수 있습니다.
 
-```
-/research-status          # List all sessions
-/research-resume <id>     # Continue from last checkpoint
-```
+---
 
-### Interactive Query Builder
+## 사용법
 
-```
-/research-query           # Guided query construction
-```
+| 명령어 | 설명 |
+|--------|------|
+| `/deep-research [주제]` | 새로운 리서치 시작 |
+| `/deep-research resume [id]` | 이전 세션 이어하기 |
+| `/deep-research status` | 모든 세션 진행 상황 확인 |
+| `/deep-research query` | 구조화된 쿼리 빌더 실행 |
+| `/deep-research` | 인터랙티브 메뉴 |
 
-## Output Location
+### 자연어 트리거
+- "딥리서치 [주제]"
+- "[주제]에 대해 리서치해줘"
+- "[주제] 리서치"
+- "deep research on [topic]"
 
-All research outputs are saved to:
+---
+
+## 산출물 구조
 
 ```
 RESEARCH/{topic}_{timestamp}/
-├── state.json              # Session state (resumable)
-├── README.md               # Navigation guide
-│
-├── outputs/                # <<< FINAL DELIVERABLES
-│   ├── 00_executive_summary.md
-│   ├── 01_full_report/
-│   │   ├── 01_introduction.md
-│   │   ├── 02_methodology.md
-│   │   ├── 03_findings.md
-│   │   └── 04_conclusions.md
-│   └── 02_appendices/
-│
-├── sources/
-│   ├── sources.jsonl       # Raw source data
-│   ├── bibliography.md     # Formatted citations
-│   └── quality_report.md   # Source quality analysis
-│
-└── website/                # Optional HTML visualization
-    └── index.html
+├── state.json                    # 세션 상태 (이어하기용)
+├── README.md                     # 네비게이션 가이드
+├── outputs/                      # 최종 산출물
+│   ├── 00_executive_summary.md   # 경영진 요약
+│   ├── 01_full_report/           # 전체 리포트
+│   ├── 02_appendices/            # 부록
+│   └── comparison_data.json      # 비교 데이터
+├── sources/                      # 소스 관리
+│   ├── sources.jsonl             # 수집된 소스
+│   ├── bibliography.md           # 참고문헌
+│   └── quality_report.md         # 품질 평가
+└── website/                      # (선택) 웹 프레젠테이션
+    ├── index.html
+    ├── styles.css
+    └── script.js
 ```
 
-## The 7-Phase Pipeline
+---
 
-| Phase | Name | Description |
-|-------|------|-------------|
-| 1 | **Question Scoping** | Clarify research question, define requirements |
-| 2 | **Retrieval Planning** | Decompose into subtopics, generate search queries |
-| 3 | **Iterative Querying** | Execute parallel searches, collect sources |
-| 4 | **Source Triangulation** | Cross-reference, validate with 2+ sources |
-| 5 | **Knowledge Synthesis** | Merge findings, create draft with citations |
-| 6 | **Quality Assurance** | Check hallucinations, verify all citations |
-| 7 | **Output & Packaging** | Generate final deliverables |
+## 구성요소
 
-## Source Quality Grades
+| 구성요소 | 설명 |
+|----------|------|
+| 커맨드 | `/deep-research` -- 메인 라우터 |
+| 스킬 | `deep-research-main` -- 7단계 리서치 파이프라인 |
+| 스킬 | `deep-research-query` -- 구조화된 쿼리 빌더 |
 
-| Grade | Description | Examples |
-|-------|-------------|----------|
-| **A** | Peer-reviewed, systematic reviews | Nature, Lancet, IEEE |
-| **B** | Official docs, guidelines | FDA, W3C, official docs |
-| **C** | Expert opinion, reports | Gartner, conferences |
-| **D** | Preliminary, preprints | arXiv, white papers |
-| **E** | Anecdotal, speculative | Blogs, social media |
+---
 
-## Project Structure
+## 요구사항
 
-```
-deep-research-kit/
-├── bin/
-│   └── install.js              # npx installer
-├── plugins/
-│   └── deep-research/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── SKILL.md
-│       └── skills/
-│           └── deep-research/
-│               ├── SKILL.md         # Skill definition
-│               ├── scripts/
-│               │   ├── orchestrator.py
-│               │   └── pipelines.py
-│               ├── references/
-│               │   ├── quality_rubric.md
-│               │   ├── citation_rules.md
-│               │   └── phase_contracts.md
-│               └── assets/templates/
-│                   ├── executive_summary.md
-│                   ├── bibliography.md
-│                   └── website_template.html
-├── package.json
-├── README.md
-└── README.ko.md
-```
+- Claude Code CLI
+- 웹 검색 도구 (WebSearch 빌트인 또는 MCP 서버)
 
-## Query Generator
+### 권장 MCP 서버 (선택)
+웹 검색 MCP 서버가 설치되어 있으면 더 풍부한 검색 결과를 얻을 수 있습니다:
+- Firecrawl
+- Google Search MCP
+- Exa Search
 
-Transform vague ideas into structured research queries:
+---
 
-1. Open any LLM (ChatGPT, Claude, Gemini)
-2. Set system prompt to `prompts/query_generator_system.md`
-3. Describe your research topic
-4. Answer clarification questions
-5. Get structured JSON query
-6. Use with `/deep-research [JSON]`
+## 라이선스
 
-## Why Use This Kit?
-
-**Perform deep research in Claude Code and save results locally.**
-
-### Core Benefits
-
-| Benefit | Description |
-|---------|-------------|
-| **Local Storage** | All research outputs saved as local files - no cloud dependency |
-| **Structured Output** | Organized folder structure (executive summary, full report, sources) |
-| **Resumable Sessions** | Stop and continue anytime with `state.json` |
-| **Source Quality Grading** | A-E ratings for source credibility assessment |
-| **Date-Aware Queries** | Auto-injects current year for fresh results |
-| **Full Customization** | JSON schema for research scope, format, source types |
-
-### What You Can Do With It
-
-```
-RESEARCH/{topic}_{timestamp}/
-├── outputs/           → Final reports (markdown)
-├── sources/           → Raw source data
-└── website/           → HTML visualization
-```
-
-- 📄 Copy reports directly to Notion, Obsidian, or your blog
-- 🔍 Use source data for additional analysis and fact-checking
-- 🌐 Share HTML outputs with your team
-- 🔄 Resume previous research sessions
-- 🛠️ Integrate with other Claude Code tasks (code generation, documentation)
-
-## Tips for Best Results
-
-1. **Be Specific** - "AI in healthcare radiology 2024" > "AI in healthcare"
-2. **Define Audience** - Technical vs executive changes depth and tone
-3. **Set Time Bounds** - "Since 2023" prevents outdated sources
-4. **Specify Source Types** - Academic-only vs including industry reports
-5. **Use JSON Queries** - For reproducible, precise research
-
-## Troubleshooting
-
-### Research Taking Too Long
-- Narrow scope (fewer subtopics)
-- Reduce source requirements
-- Use `min_quality: "C"` instead of "B"
-
-### Missing Sources
-- Broaden search terms
-- Include more source types
-- Extend timeframe
-
-### Resume Not Working
-- Check `RESEARCH/*/state.json` exists
-- Verify session_id spelling
-
-## Requirements
-
-- **Claude Code** with agentic capabilities
-- **Python 3.8+** (for orchestrator script)
-- **Node.js 16+** (for npx installation)
-
-## Contributing
-
-Contributions welcome! Feel free to:
-- Add new output templates
-- Improve search strategies
-- Enhance verification methods
-- Add language support
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Credits
-
-- Inspired by OpenAI and Google deep research methodologies
-- Built for [Claude Code](https://claude.ai/code)
+MIT

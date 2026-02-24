@@ -1,10 +1,20 @@
 {
-  "name": "fivetaku-plugins",
-  "version": "1.0.0",
-  "description": "Deep research and AI-powered tools for Claude Code",
+  "name": "deep-research",
+  "version": "2.0.0",
+  "description": "AI-powered deep research with multi-agent source verification and structured outputs",
   "author": {
     "name": "fivetaku",
     "url": "https://github.com/fivetaku"
   },
-  "repository": "https://github.com/fivetaku/deep-research-kit"
+  "homepage": "https://github.com/fivetaku/deep-research-kit",
+  "repository": "https://github.com/fivetaku/deep-research-kit",
+  "license": "MIT",
+  "keywords": [
+    "deep-research",
+    "multi-agent",
+    "research",
+    "citations",
+    "source-verification",
+    "academic"
+  ]
 }
