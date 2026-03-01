@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0] - 2026-02-28
+
+### Changed
+- 멀티에이전트 소스 검증 파이프라인 도입 (7단계)
+- 구조화된 리포트 생성 기능 강화
+- plugin.json 메타데이터 보강 (homepage, repository, license 추가)
+
 ## [1.1.0] - 2026-02-25
 
 ### Changed
