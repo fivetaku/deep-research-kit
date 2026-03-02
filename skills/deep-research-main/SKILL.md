@@ -54,7 +54,7 @@ DO NOT output text-based questions. INSTEAD, call the AskUserQuestion tool with 
 - Generate ALL question labels and descriptions in the SAME LANGUAGE as user input
 - If Korean -> Korean options, If English -> English options, etc.
 
-Use `AskUserQuestion` with these questions (combine into 1-4 question groups).
+**EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다 (combine into 1-4 question groups).
 Translate all labels/descriptions to match user's language:
 
 **English Example:**
@@ -108,7 +108,7 @@ Translate all labels/descriptions to match user's language:
 }
 ```
 
-**Korean Example:**
+**Korean Example (EXECUTE):**
 ```json
 {
   "questions": [

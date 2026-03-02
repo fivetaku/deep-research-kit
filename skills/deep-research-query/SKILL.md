@@ -24,7 +24,7 @@ description: This skill should be used when a user wants to build a structured r
 
 ### Phase 1: Discovery (REQUIRED)
 
-Use `AskUserQuestion` to gather core requirements. Detect user language and translate all labels.
+**EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다. Detect user language and translate all labels.
 
 ```json
 {
@@ -58,7 +58,7 @@ If user selects "Browse examples", load and present examples from:
 
 ### Phase 2: Detailed Scoping
 
-After getting the core topic, gather detailed requirements:
+After getting the core topic, **EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
 
 ```json
 {
@@ -178,7 +178,7 @@ After gathering all inputs, generate:
 
 ### Phase 4: Confirmation and Handoff
 
-Present the generated query to the user and ask:
+**EXECUTE:** 아래 JSON으로 AskUserQuestion 도구를 즉시 호출한다:
 
 ```json
 {
