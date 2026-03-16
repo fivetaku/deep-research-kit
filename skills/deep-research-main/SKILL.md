@@ -197,6 +197,9 @@ Before generating ANY search query, determine today's date from the system conte
 ### Phase 3: Iterative Querying
 - Execute searches systematically with parallel agents
 - Navigate and extract relevant information
+  - WebFetch 실패 시 → `tool_strategy.md` Tier 2.5 Fallback 순서대로 시도
+  - 우회 성공 시 소스 신뢰도에 `via_fallback` 태그 추가
+  - 실패한 URL과 우회 시도 결과를 `sources/failed_urls.txt`에 함께 기록
 - Formulate new queries based on findings
 - Use multiple search modalities (web, academic, code)
 
@@ -469,8 +472,10 @@ for phase_num in range(1, 8):
 
 ### Network Failures
 - Retry up to 3 times with backoff
-- Log failed URLs to `sources/failed_urls.txt`
-- Continue with available sources
+- If still failing → Execute Tier 2.5 Fallback Strategy (`tool_strategy.md` 참조)
+  - 모바일 UA curl → RSS 피드 → OGP 메타태그 → Google 캐시/Wayback → curl_cffi → Playwright MCP
+- Log failed URLs + fallback attempt results to `sources/failed_urls.txt`
+- Continue with available sources (including fallback-retrieved content)
 
 ### Token Limits
 - Split long documents into chunks
