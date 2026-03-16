@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.2.0] - 2026-03-16
+
+### Added
+- Tier 2.5 fallback strategy — 차단된 사이트에 대한 대체 접근 전략 추가
+
+## [2.1.0] - 2026-03-10
+
+### Fixed
+- allowed-tools에서 AskUserQuestion 제거 — auto-approve로 UI가 렌더링되지 않던 버그 해결
+- SKILL.md에 EXECUTE 키워드 + markdown preview 적용
+
+### Changed
+- .gitattributes 추가 — CRLF/LF 정규화
+
 ## [2.0.0] - 2026-02-28
 
 ### Changed
