@@ -419,7 +419,7 @@ Use the templates at `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/assets/tem
 ## Structured Query Support
 
 For precise research control, accept structured JSON queries following the schema at:
-`${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/query_schema.json`
+`${CLAUDE_PLUGIN_ROOT}/skills/deep-research-query/references/query_schema.json`
 
 When a user provides a JSON object as input, parse it according to the schema and skip Phase 1 (Question Scoping) since requirements are already defined.
 
@@ -513,5 +513,5 @@ For detailed documentation on specific aspects:
 | Source quality rubric | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/quality_rubric.md` |
 | Agent prompt templates & GoT | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/agent_prompts.md` |
 | Tool strategy & code examples | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/tool_strategy.md` |
-| Structured query schema | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/query_schema.json` |
+| Structured query schema | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-query/references/query_schema.json` |
 | Query builder skill | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-query/SKILL.md` |
