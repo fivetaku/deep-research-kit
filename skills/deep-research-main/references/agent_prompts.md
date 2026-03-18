@@ -50,16 +50,16 @@ Never confirm without sources.
 
 ## Agent Deployment Pattern
 
-```python
-# Deploy parallel agents for subtopics using Task tool
-Task(subagent_type="Explore", prompt="Research current state of [subtopic1]...")
-Task(subagent_type="Explore", prompt="Research challenges in [subtopic2]...")
-Task(subagent_type="Explore", prompt="Find official documentation for [subtopic3]...")
-Task(subagent_type="Explore", prompt="Find academic papers on [subtopic4]...")
-Task(subagent_type="Explore", prompt="Verify key claims: [list claims]...")
+```
+Deploy parallel agents for subtopics using the Agent tool:
+Agent(subagent_type="Explore", prompt="Research current state of [subtopic1]...")
+Agent(subagent_type="Explore", prompt="Research challenges in [subtopic2]...")
+Agent(subagent_type="Explore", prompt="Find official documentation for [subtopic3]...")
+Agent(subagent_type="Explore", prompt="Find academic papers on [subtopic4]...")
+Agent(subagent_type="Explore", prompt="Verify key claims: [list claims]...")
 
-# Launch multiple agents in parallel by including multiple Task calls in a single response
-# Collect results when each agent completes
+Launch multiple Agent calls in a single response for parallel execution.
+Collect results when each agent completes.
 ```
 
 ---

@@ -393,5 +393,8 @@ def list_research_sessions(base_path: str = "RESEARCH") -> List[Dict]:
 
 
 if __name__ == "__main__":
-    result = init_research("AI Detection Technologies 2025")
+    import sys
+
+    topic = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Example Research Topic"
+    result = init_research(topic)
     print(json.dumps(result, indent=2))

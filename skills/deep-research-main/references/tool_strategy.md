@@ -140,21 +140,21 @@ mcp_context7_query_docs(libraryId="/facebook/react", query="useEffect")
 
 ## Background Agents for Parallel Research
 
-```python
-# Deploy parallel research agents using Task tool
-Task(
+```
+Deploy parallel research agents using the Agent tool:
+Agent(
     subagent_type="Explore",
     description="Research subtopic",
     prompt="Detailed research instructions...",
-    run_in_background=True
+    run_in_background=true
 )
 
-# Or use general-purpose agent for broader research
-Task(
+Or use general-purpose agent for broader research:
+Agent(
     subagent_type="general-purpose",
     description="Deep research on subtopic",
     prompt="...",
-    run_in_background=True
+    run_in_background=true
 )
 ```
 

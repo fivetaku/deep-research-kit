@@ -5,7 +5,22 @@ Deep Research Pipeline Definitions
 
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+
+
+def _current_year() -> int:
+    return datetime.now().year
+
+
+def _date_range_recent() -> str:
+    year = _current_year()
+    return f"{year - 1}-{year}"
+
+
+def _date_range_broad() -> str:
+    year = _current_year()
+    return f"{year - 2}-{year}"
 
 
 class AgentType(Enum):
@@ -40,49 +55,6 @@ class PipelineConfig:
     search_timeout_seconds: int = 60
 
 
-CLARIFICATION_QUESTIONS = """
-I'll help you conduct deep research on **{topic}**. Let me ask a few questions to ensure I deliver exactly what you need:
-
-1. **Specific Focus**: What aspects of {topic} interest you most?
-   - Current state and trends
-   - Technical deep-dive
-   - Market analysis
-   - Future predictions
-   - All of the above
-
-2. **Output Format**: What type of deliverable would be most useful?
-   - Comprehensive report (20-50+ pages)
-   - Executive summary (3-5 pages)
-   - Modular folder structure with multiple documents
-   - Data analysis with visualizations
-
-3. **Scope**: Any specific constraints?
-   - Geographic focus (Global, US, Europe, Asia, etc.)
-   - Time period (Current, last N years, future projections)
-   - Industries or domains to focus on
-   - What should be EXCLUDED?
-
-4. **Sources**: Source preferences?
-   - Academic/peer-reviewed only
-   - Industry reports and white papers
-   - News and current events
-   - Official documentation
-   - Any sources to avoid?
-
-5. **Audience**: Who will read this research?
-   - Technical team
-   - Business executives
-   - Researchers/academics
-   - General audience
-
-6. **Special Requirements**:
-   - Specific data or statistics needed?
-   - Comparison frameworks?
-   - Code examples or technical blueprints?
-   - Visualizations (charts, diagrams)?
-"""
-
-
 SUBTOPIC_DECOMPOSITION_PROMPT = """
 Based on the research topic "{topic}" and requirements:
 {requirements}
@@ -105,7 +77,7 @@ AGENT_PROMPTS = {
 Research the CURRENT STATE of {subtopic} for topic: {topic}
 
 Focus on:
-- What exists today (2024-2025)
+- What exists today ({date_range_recent})
 - Key players and solutions
 - Market size and adoption rates
 - Real-world implementations
@@ -148,7 +120,7 @@ Focus on:
 - Expert predictions
 - Potential disruptions
 
-Prioritize recent sources (2024-2025).
+Prioritize recent sources ({date_range_recent}).
 Cite all claims with full source information.
 
 Return structured findings with timeline indicators.
@@ -187,7 +159,7 @@ Include:
 - Key findings summary
 - Relevance score
 
-Prioritize recent publications (2023-2025).
+Prioritize recent publications ({date_range_broad}).
 """,
     "verification": """
 VERIFY the following claims about {subtopic}:
@@ -234,77 +206,6 @@ Output format:
 """
 
 
-QA_CHECKLIST = """
-## Quality Assurance Checklist
-
-### Citation Verification
-- [ ] Every factual claim has a source citation
-- [ ] All URLs are accessible and valid
-- [ ] Citation format is consistent throughout
-- [ ] No broken or dead links
-
-### Content Quality
-- [ ] No hallucinated facts or statistics
-- [ ] Multiple sources corroborate key findings
-- [ ] Contradictions are noted and explained
-- [ ] Sources are recent (within scope timeframe)
-- [ ] Source quality ratings applied (A-E)
-
-### Completeness
-- [ ] All subtopics covered adequately
-- [ ] Executive summary reflects full content
-- [ ] Bibliography is complete
-- [ ] No obvious gaps in coverage
-
-### Structure
-- [ ] Logical flow between sections
-- [ ] Consistent formatting
-- [ ] Table of contents accurate
-- [ ] Headings hierarchy correct
-
-### Special Requirements
-- [ ] Audience-appropriate language
-- [ ] Requested visualizations included
-- [ ] Geographic scope honored
-- [ ] Time period constraints met
-"""
-
-
-SOURCE_QUALITY_RUBRIC = """
-## Source Quality Rating System
-
-### A - Highest Quality
-- Peer-reviewed systematic reviews and meta-analyses
-- Randomized controlled trials
-- Official government/regulatory publications
-- Major institution research reports
-
-### B - High Quality  
-- Peer-reviewed original research
-- Official industry standards documents
-- Established organization white papers
-- Clinical/practice guidelines
-
-### C - Moderate Quality
-- Expert opinion pieces
-- Conference presentations
-- Case studies and reports
-- Reputable news analysis
-
-### D - Lower Quality
-- Preprints (not peer-reviewed)
-- Blog posts from domain experts
-- Conference abstracts
-- Industry press releases
-
-### E - Use with Caution
-- Anonymous sources
-- Opinion without evidence
-- Outdated information (>3 years for fast-moving fields)
-- Sources with clear bias/conflicts
-"""
-
-
 def generate_research_plan(topic: str, requirements: Dict) -> Dict:
     return {
         "topic": topic,
@@ -319,6 +220,10 @@ def generate_research_plan(topic: str, requirements: Dict) -> Dict:
 
 def create_agent_tasks(subtopics: List[str], topic: str) -> List[AgentTask]:
     tasks = []
+    date_ctx = {
+        "date_range_recent": _date_range_recent(),
+        "date_range_broad": _date_range_broad(),
+    }
 
     for subtopic in subtopics:
         tasks.append(
@@ -326,7 +231,7 @@ def create_agent_tasks(subtopics: List[str], topic: str) -> List[AgentTask]:
                 agent_type=AgentType.EXPLORE,
                 description=f"Current state of {subtopic}",
                 prompt=AGENT_PROMPTS["explore_current_state"].format(
-                    subtopic=subtopic, topic=topic
+                    subtopic=subtopic, topic=topic, **date_ctx
                 ),
                 subtopic=subtopic,
                 expected_output="Structured findings with citations",
@@ -360,7 +265,7 @@ def create_agent_tasks(subtopics: List[str], topic: str) -> List[AgentTask]:
             agent_type=AgentType.EXPLORE,
             description=f"Future developments for {topic}",
             prompt=AGENT_PROMPTS["explore_future"].format(
-                subtopic="overall topic", topic=topic
+                subtopic="overall topic", topic=topic, **date_ctx
             ),
             subtopic="future",
             expected_output="Future predictions with timeline",
@@ -370,11 +275,19 @@ def create_agent_tasks(subtopics: List[str], topic: str) -> List[AgentTask]:
     return tasks
 
 
+def get_agent_prompt(name: str, **kwargs) -> str:
+    """Get an agent prompt with date context automatically injected."""
+    date_ctx = {
+        "date_range_recent": _date_range_recent(),
+        "date_range_broad": _date_range_broad(),
+    }
+    merged = {**date_ctx, **kwargs}
+    return AGENT_PROMPTS[name].format(**merged)
+
+
 def get_verification_prompt(claims: List[str], subtopic: str) -> str:
     claims_text = "\n".join(f"- {claim}" for claim in claims)
-    return AGENT_PROMPTS["verification"].format(
-        subtopic=subtopic, claims_to_verify=claims_text
-    )
+    return get_agent_prompt("verification", subtopic=subtopic, claims_to_verify=claims_text)
 
 
 def get_synthesis_prompt(subtopic: str, findings: str) -> str:

@@ -138,6 +138,9 @@ Translate all labels/descriptions to match user's language:
 
 ## The 7-Phase Deep Research Process
 
+> Phase 이름은 코드 내부에서 영어를 사용하며, 사용자 대면 설명은 한국어를 사용합니다.
+> 매핑: 질문 정제(Phase 1) → 검색 계획(Phase 2) → 병렬 수집(Phase 3) → 소스 삼각검증(Phase 4) → 지식 합성(Phase 5) → 품질 보증(Phase 6) → 산출물 패키징(Phase 7)
+
 ### Phase 1: Question Scoping
 - Clarify the research question with the user
 - Define output format and success criteria
@@ -242,7 +245,7 @@ Deploy 3-5 parallel agents to maximize coverage:
 | Academic/Technical | 1-2 | Papers, specs, methodology | Technical analysis with citations |
 | Cross-Reference | 1 | Fact-checking, verification | Confidence ratings for key findings |
 
-Launch multiple Task calls in a single response for parallel execution. Each agent receives a focused prompt with specific subtopic and citation requirements.
+Launch multiple Agent tool calls in a single response for parallel execution. Each agent receives a focused prompt with specific subtopic and citation requirements.
 
 For detailed agent prompt templates and Graph of Thoughts integration:
 `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/agent_prompts.md`
@@ -253,7 +256,7 @@ For detailed agent prompt templates and Graph of Thoughts integration:
 
 Use whichever search and extraction tools are available. Prioritize: MCP tools (Firecrawl, Google Search, Exa) > Built-in tools (WebSearch, WebFetch) > Specialized tools (GitHub search, library docs).
 
-Deploy parallel research agents using the Task tool with `run_in_background=True` for concurrent subtopic investigation.
+Deploy parallel research agents using the Agent tool with `run_in_background=true` for concurrent subtopic investigation.
 
 For detailed tool strategy and code examples:
 `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/tool_strategy.md`
@@ -274,28 +277,11 @@ Every factual claim MUST include inline citation.
 
 ### Source Quality Ratings
 
-| Grade | Description | Examples |
-|-------|-------------|----------|
-| **A** | Peer-reviewed, systematic reviews, meta-analyses | Nature, Lancet, IEEE |
-| **B** | Official docs, clinical guidelines, cohort studies | FDA, W3C, WHO |
-| **C** | Expert opinion, case reports, industry reports | Gartner, conferences |
-| **D** | Preliminary research, preprints, white papers | arXiv, company blogs |
-| **E** | Anecdotal, theoretical, speculative | Social media, forums |
-
-### Red Flags (Unreliable Sources)
-- No author attribution
-- Missing publication dates
-- Broken or suspicious URLs
-- Claims without data
-- Conflicts of interest not disclosed
-- Predatory journals
-- Retracted papers
-
-For detailed citation formatting rules, refer to:
-`${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/citation_rules.md`
-
-For complete source quality assessment rubric:
+For the complete A-E rating system, red flags, and domain-specific adjustments, refer to the canonical rubric:
 `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/quality_rubric.md`
+
+For detailed citation formatting rules:
+`${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/citation_rules.md`
 
 ---
 
@@ -525,4 +511,4 @@ For detailed documentation on specific aspects:
 | Agent prompt templates & GoT | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/agent_prompts.md` |
 | Tool strategy & code examples | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/tool_strategy.md` |
 | Structured query schema | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/query_schema.json` |
-| Query generation guide | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/query_generator.md` |
+| Query builder skill | `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-query/SKILL.md` |
