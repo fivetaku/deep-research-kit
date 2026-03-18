@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.3.0] - 2026-03-18
+
+### Changed
+- DRY 대규모 정리: 소스 품질 등급(4중 중복 → quality_rubric.md 정본), QA 체크리스트, 명확화 질문 등 pipelines.py 중복 상수 제거
+- query_generator.md 삭제 (deep-research-query/SKILL.md가 정본)
+- pipelines.py 날짜 하드코딩 → 동적 _date_range_recent/_broad() 함수로 교체
+- Task 도구명 → Agent 도구명 통일 (SKILL.md, agent_prompts.md, tool_strategy.md)
+- Agent 프롬프트 내 MCP 도구명 하드코딩 → 일반화
+- orchestrator.py __main__ → CLI 인자 수용
+- Phase 이름 한영 매핑 표 추가
+
 ## [2.2.0] - 2026-03-16
 
 ### Added

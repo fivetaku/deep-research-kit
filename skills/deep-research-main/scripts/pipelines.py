@@ -3,7 +3,7 @@
 Deep Research Pipeline Definitions
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -82,10 +82,7 @@ Focus on:
 - Market size and adoption rates
 - Real-world implementations
 
-Use these tools:
-1. mcp_google_search for recent news and reports
-2. mcp_websearch for deep web search
-3. mcp_webfetch to extract content from URLs
+Use available search and extraction tools (MCP or built-in) to find:
 
 For EVERY factual claim, provide:
 - Direct quote or data point
@@ -128,10 +125,7 @@ Return structured findings with timeline indicators.
     "librarian_docs": """
 Find OFFICIAL DOCUMENTATION and TECHNICAL RESOURCES for {subtopic}
 
-Use:
-1. mcp_context7 for library documentation
-2. mcp_grep_app for GitHub code examples
-3. mcp_google_search for official specs
+Use available search tools (library docs, code search, web search) to find:
 
 Focus on:
 - Official documentation

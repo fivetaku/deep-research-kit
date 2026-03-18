@@ -109,6 +109,7 @@ Translate all labels/descriptions to match user's language:
 ```
 
 **Korean Example (EXECUTE):**
+위 영어 예시와 동일한 4개 질문(Focus, Output, Audience, Sources)을 한국어로 변환하여 전송한다. 아래는 첫 번째 질문의 예시:
 ```json
 {
   "questions": [
@@ -493,7 +494,7 @@ State management scripts are available at:
 | Script | Purpose |
 |--------|---------|
 | `orchestrator.py` | Research state machine controller - session creation, phase management, source tracking |
-| `pipelines.py` | Pipeline definitions - agent prompts, clarification templates, synthesis prompts |
+| `pipelines.py` | Pipeline definitions - agent prompts, subtopic decomposition, synthesis prompts |
 
 These can be executed via Bash to initialize sessions or manage state programmatically.
 
