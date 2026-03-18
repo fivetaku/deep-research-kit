@@ -4,7 +4,7 @@ Deep Research Pipeline Definitions
 """
 
 from typing import Dict, List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
@@ -26,15 +26,6 @@ def _date_range_broad() -> str:
 class AgentType(Enum):
     EXPLORE = "explore"
     LIBRARIAN = "librarian"
-    GENERAL = "general"
-
-
-@dataclass
-class SearchQuery:
-    query: str
-    subtopic: str
-    priority: int = 1
-    tools: List[str] = field(default_factory=lambda: ["google_search"])
 
 
 @dataclass
@@ -44,15 +35,6 @@ class AgentTask:
     prompt: str
     subtopic: str
     expected_output: str
-
-
-@dataclass
-class PipelineConfig:
-    max_sources_per_subtopic: int = 10
-    min_sources_for_triangulation: int = 2
-    quality_threshold: str = "C"
-    max_parallel_agents: int = 5
-    search_timeout_seconds: int = 60
 
 
 SUBTOPIC_DECOMPOSITION_PROMPT = """
@@ -82,7 +64,7 @@ Focus on:
 - Market size and adoption rates
 - Real-world implementations
 
-Use available search and extraction tools (MCP or built-in) to find:
+Use available search and extraction tools (MCP or built-in).
 
 For EVERY factual claim, provide:
 - Direct quote or data point
@@ -125,7 +107,7 @@ Return structured findings with timeline indicators.
     "librarian_docs": """
 Find OFFICIAL DOCUMENTATION and TECHNICAL RESOURCES for {subtopic}
 
-Use available search tools (library docs, code search, web search) to find:
+Use available search tools (library docs, code search, web search).
 
 Focus on:
 - Official documentation

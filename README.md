@@ -117,7 +117,9 @@ RESEARCH/{topic}_{timestamp}/
 ├── outputs/                      # 최종 산출물
 │   ├── 00_executive_summary.md   # 경영진 요약
 │   ├── 01_full_report/           # 전체 리포트
-│   ├── 02_appendices/            # 부록
+│   ├── 02_end_user_guide/        # 사용자 가이드 (선택)
+│   ├── 03_developer_blueprint/   # 개발자 블루프린트 (선택)
+│   ├── 04_appendices/            # 부록
 │   └── comparison_data.json      # 비교 데이터
 ├── sources/                      # 소스 관리
 │   ├── sources.jsonl             # 수집된 소스

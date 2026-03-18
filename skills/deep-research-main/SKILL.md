@@ -391,7 +391,9 @@ RESEARCH/{topic}_{timestamp}/
 │   │   ├── 03_challenges.md
 │   │   ├── 04_future_outlook.md
 │   │   └── 05_conclusions.md
-│   ├── 02_appendices/
+│   ├── 02_end_user_guide/       # (if requested)
+│   ├── 03_developer_blueprint/  # (if requested)
+│   ├── 04_appendices/
 │   └── comparison_data.json
 │
 └── website/                     # (optional) Visual presentation
