@@ -3,7 +3,7 @@ name: deep-research
 description: "AI 딥리서치 -- 멀티에이전트 기반 종합 리서치 시스템"
 argument-hint: "[topic|resume|status|query]"
 allowed-tools:
-  - Task
+  - Agent
   - WebSearch
   - WebFetch
   - Read
