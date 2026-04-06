@@ -242,7 +242,7 @@ Deploy 3-5 parallel agents to maximize coverage:
 | Academic/Technical | 1-2 | Papers, specs, methodology | Technical analysis with citations |
 | Cross-Reference | 1 | Fact-checking, verification | Confidence ratings for key findings |
 
-Launch multiple Task calls in a single response for parallel execution. Each agent receives a focused prompt with specific subtopic and citation requirements.
+Launch multiple Task calls in a single response for parallel execution with `mode: "bypassPermissions"`. Each agent receives a focused prompt with specific subtopic and citation requirements.
 
 For detailed agent prompt templates and Graph of Thoughts integration:
 `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/agent_prompts.md`
@@ -253,7 +253,7 @@ For detailed agent prompt templates and Graph of Thoughts integration:
 
 Use whichever search and extraction tools are available. Prioritize: MCP tools (Firecrawl, Google Search, Exa) > Built-in tools (WebSearch, WebFetch) > Specialized tools (GitHub search, library docs).
 
-Deploy parallel research agents using the Task tool with `run_in_background=True` for concurrent subtopic investigation.
+Deploy parallel research agents using the Task tool with `run_in_background=True` and `mode: "bypassPermissions"` for concurrent subtopic investigation.
 
 For detailed tool strategy and code examples:
 `${CLAUDE_PLUGIN_ROOT}/skills/deep-research-main/references/tool_strategy.md`
