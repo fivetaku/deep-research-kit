@@ -19,7 +19,7 @@ class SearchQuery:
     query: str
     subtopic: str
     priority: int = 1
-    tools: List[str] = field(default_factory=lambda: ["google_search"])
+    tools: List[str] = field(default_factory=lambda: ["WebSearch", "WebFetch", "Bash"])
 
 
 @dataclass
@@ -111,9 +111,10 @@ Focus on:
 - Real-world implementations
 
 Use these tools:
-1. mcp_google_search for recent news and reports
-2. mcp_websearch for deep web search
-3. mcp_webfetch to extract content from URLs
+1. WebSearch for discovering recent news, reports, and source URLs
+2. WebFetch to extract content from discovered URLs
+3. Bash(curl) for platforms where WebFetch fails (see tool_strategy.md for platform-specific commands)
+If MCP tools (Perplexity, Firecrawl, Exa, Google Search) are available, use them for enhanced coverage.
 
 For EVERY factual claim, provide:
 - Direct quote or data point
@@ -157,9 +158,10 @@ Return structured findings with timeline indicators.
 Find OFFICIAL DOCUMENTATION and TECHNICAL RESOURCES for {subtopic}
 
 Use:
-1. mcp_context7 for library documentation
-2. mcp_grep_app for GitHub code examples
-3. mcp_google_search for official specs
+1. WebSearch for official documentation and specs
+2. gh CLI (gh search code, gh search repos) for code examples
+3. WebFetch or Jina Reader (curl r.jina.ai/URL) to extract documentation content
+If MCP tools (Context7, grep.app) are available, use them for enhanced search.
 
 Focus on:
 - Official documentation
