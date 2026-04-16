@@ -1,121 +1,153 @@
-# Deep Research
+English | [한국어](README.ko.md)
 
-AI 기반 멀티에이전트 딥리서치 시스템 -- 소스 검증과 구조화된 리포트를 자동으로 생성합니다.
+# deep-research
 
----
+> **AI-powered deep research with multi-agent source verification and structured outputs.**
 
-## 이런 분을 위한 도구입니다
+Turn a single question into a comprehensive, citation-backed research report — automatically.
 
-- 특정 주제에 대해 20~50페이지 이상의 종합 리서치 리포트가 필요한 분
-- 여러 소스를 교차 검증하며 신뢰할 수 있는 인사이트를 얻고 싶은 분
-- 학술 논문, 산업 리포트, 뉴스를 아우르는 체계적인 조사가 필요한 분
-- 리서치 결과를 인터랙티브 웹사이트로까지 패키징하고 싶은 분
+[Quick Start](#quick-start) • [Why deep-research?](#why-deep-research) • [How it works](#how-it-works) • [Commands](#commands) • [Output](#output-structure) • [Requirements](#requirements)
 
 ---
 
-## 어떻게 작동하나요?
+## Quick Start
 
-7단계 파이프라인을 통해 주제를 분석합니다:
-
-1. **질문 정제** -- 사용자와 대화하며 리서치 범위를 명확히 합니다
-2. **검색 계획** -- 주제를 3-5개 하위 토픽으로 분해하고 검색 전략을 수립합니다
-3. **병렬 수집** -- 멀티에이전트가 동시에 웹, 학술, 기술 문서를 검색합니다
-4. **소스 삼각검증** -- 핵심 주장을 최소 2개 이상 소스로 교차 확인합니다
-5. **지식 합성** -- 수집된 정보를 논리적 구조로 통합합니다
-6. **품질 보증** -- 할루시네이션 체크, 인용 검증, 완성도 점검을 수행합니다
-7. **산출물 패키징** -- 최종 리포트, 참고문헌, 웹사이트를 생성합니다
-
----
-
-## 설치 방법
-
-### 1. 마켓플레이스 등록 (처음 한 번만)
+### 1. Add the marketplace (once)
 
 ```
 /plugin marketplace add https://github.com/fivetaku/gptaku_plugins.git
 ```
 
-### 2. 플러그인 설치
+### 2. Install the plugin
 
 ```
 /plugin install deep-research
 ```
 
-> 설치 후에는 Claude Code를 **재시작**하세요.
+### 3. Restart Claude Code
 
-### 처음 시작하기
+Cache loads on startup — a restart is required after install.
+
+### 4. Start researching
+
 ```
-/deep-research AI 코드 어시스턴트의 생산성 영향
+/deep-research AI coding assistants productivity impact
+```
+
+Claude will ask a few scoping questions, then deploy parallel research agents and deliver a structured report.
+
+---
+
+## Why deep-research?
+
+- **Parallel agents, not sequential searches** — 3-5 agents run simultaneously across web, academic, and technical sources, cutting research time significantly
+- **Source quality ratings (A–E)** — Every source is graded from peer-reviewed papers (A) to speculative posts (E), so you always know what you're reading
+- **Hallucination-resistant** — Every factual claim requires an inline citation; key claims are cross-verified against at least 2 independent sources
+- **Resumable sessions** — Research state is saved to `state.json`; pick up where you left off if a session is interrupted
+- **Complete deliverables** — Executive summary, full sectioned report, bibliography, and an optional interactive website — all generated automatically
+
+---
+
+## How it works
+
+```
+User query
+    │
+    ▼
+Phase 1: Question Scoping
+  └─ AskUserQuestion → focus, depth, audience, sources
+    │
+    ▼
+Phase 2: Retrieval Planning
+  └─ Break into 3-5 subtopics → search query generation → plan approval
+    │
+    ▼
+Phase 3: Iterative Querying  ←──────────────────┐
+  ├─ Web Research Agent (x2-3)                  │
+  ├─ Academic/Technical Agent (x1-2)            │ refine if gaps
+  └─ Cross-Reference Agent (x1)                 │
+    │                                            │
+    ▼                                            │
+Phase 4: Source Triangulation ─────────────────-┘
+  └─ Cross-verify key claims (≥2 sources) → A–E quality rating
+    │
+    ▼
+Phase 5: Knowledge Synthesis
+  └─ Structure → write sections → inline citations
+    │
+    ▼
+Phase 6: Quality Assurance
+  └─ Hallucination check → citation verification → completeness
+    │
+    ▼
+Phase 7: Output & Packaging
+  └─ Executive summary + full report + bibliography + website (optional)
 ```
 
 ---
 
-## 핵심 기능
+## Commands
 
-### 1. 7단계 자동 리서치 파이프라인
-질문 정제부터 최종 리포트까지 전 과정을 자동화합니다. 각 단계의 입출력이 명확히 정의되어 있어 중간에 중단해도 이어서 진행할 수 있습니다.
+| Command | Description |
+|---------|-------------|
+| `/deep-research [topic]` | Start a new research session |
+| `/deep-research resume [session_id]` | Resume a previous session |
+| `/deep-research status` | View all session progress |
+| `/deep-research query` | Launch the structured query builder |
+| `/deep-research` | Open the interactive menu |
 
-### 2. 멀티에이전트 병렬 검색
-3-5개의 에이전트가 동시에 검색합니다:
-- **웹 리서치 에이전트** -- 최신 뉴스, 트렌드, 시장 데이터
-- **학술/기술 에이전트** -- 논문, 기술 스펙, 공식 문서
-- **교차검증 에이전트** -- 핵심 주장의 팩트체크
+### Natural language triggers
 
-### 3. 소스 품질 등급 시스템 (A-E)
-모든 소스에 품질 등급을 부여합니다:
-- **A**: 피어리뷰, 체계적 리뷰 (Nature, Lancet, IEEE)
-- **B**: 공식 문서, 가이드라인 (FDA, W3C, WHO)
-- **C**: 전문가 의견, 산업 리포트 (Gartner, 컨퍼런스)
-- **D**: 프리프린트, 화이트페이퍼 (arXiv, 기업 블로그)
-- **E**: 일화적, 투기적 (소셜미디어, 포럼)
-
-### 4. 할루시네이션 방지
-- 모든 주장에 인라인 인용 필수
-- Chain-of-Verification으로 핵심 주장 검증
-- 소스 간 모순 발견 시 명시적 고지
-
-### 5. 세션 관리 및 이어하기
-리서치 세션은 `state.json`으로 상태가 저장되어 언제든 중단하고 이어서 진행할 수 있습니다.
-
-### 6. 구조화된 쿼리 빌더
-인터랙티브 쿼리 빌더로 정밀한 리서치 조건을 미리 설정할 수 있습니다.
+```
+deep research on [topic]
+research [topic]
+[topic] 리서치해줘
+딥리서치 [주제]
+심층 연구 [주제]
+```
 
 ---
 
-## 사용법
+## Agents
 
-| 명령어 | 설명 |
-|--------|------|
-| `/deep-research [주제]` | 새로운 리서치 시작 |
-| `/deep-research resume [id]` | 이전 세션 이어하기 |
-| `/deep-research status` | 모든 세션 진행 상황 확인 |
-| `/deep-research query` | 구조화된 쿼리 빌더 실행 |
-| `/deep-research` | 인터랙티브 메뉴 |
+Three agent types run in parallel during Phase 3:
 
-### 자연어 트리거
-- "딥리서치 [주제]"
-- "[주제]에 대해 리서치해줘"
-- "[주제] 리서치"
-- "deep research on [topic]"
+| Agent | Count | Focus |
+|-------|-------|-------|
+| Web Research | 2–3 | Latest news, trends, market data |
+| Academic / Technical | 1–2 | Papers, specs, official docs |
+| Cross-Reference | 1 | Fact-checking key claims |
 
 ---
 
-## 산출물 구조
+## Source Quality Ratings
+
+| Grade | Type | Examples |
+|-------|------|---------|
+| **A** | Peer-reviewed, systematic reviews | Nature, Lancet, IEEE |
+| **B** | Official docs, clinical guidelines | FDA, W3C, WHO |
+| **C** | Expert opinion, industry reports | Gartner, conferences |
+| **D** | Preprints, white papers | arXiv, company blogs |
+| **E** | Anecdotal, speculative | Social media, forums |
+
+---
+
+## Output Structure
 
 ```
 RESEARCH/{topic}_{timestamp}/
-├── state.json                    # 세션 상태 (이어하기용)
-├── README.md                     # 네비게이션 가이드
-├── outputs/                      # 최종 산출물
-│   ├── 00_executive_summary.md   # 경영진 요약
-│   ├── 01_full_report/           # 전체 리포트
-│   ├── 02_appendices/            # 부록
-│   └── comparison_data.json      # 비교 데이터
-├── sources/                      # 소스 관리
-│   ├── sources.jsonl             # 수집된 소스
-│   ├── bibliography.md           # 참고문헌
-│   └── quality_report.md         # 품질 평가
-└── website/                      # (선택) 웹 프레젠테이션
+├── state.json                    # Session state (for resume)
+├── README.md                     # Navigation guide
+├── outputs/
+│   ├── 00_executive_summary.md   # 3–5 page summary
+│   ├── 01_full_report/           # Full sectioned report
+│   ├── 02_appendices/            # Supporting material
+│   └── comparison_data.json      # Structured comparison data
+├── sources/
+│   ├── sources.jsonl             # Collected sources
+│   ├── bibliography.md           # Formatted bibliography
+│   └── quality_report.md         # Source quality ratings
+└── website/                      # (optional) Interactive presentation
     ├── index.html
     ├── styles.css
     └── script.js
@@ -123,29 +155,27 @@ RESEARCH/{topic}_{timestamp}/
 
 ---
 
-## 구성요소
+## Requirements
 
-| 구성요소 | 설명 |
-|----------|------|
-| 커맨드 | `/deep-research` -- 메인 라우터 |
-| 스킬 | `deep-research-main` -- 7단계 리서치 파이프라인 |
-| 스킬 | `deep-research-query` -- 구조화된 쿼리 빌더 |
+- [Claude Code](https://docs.anthropic.com/claude-code) CLI
+- WebSearch (built-in) or a web search MCP server
 
----
+### Optional MCP servers (enhance search coverage)
 
-## 요구사항
-
-- Claude Code CLI
-- 웹 검색 도구 (WebSearch 빌트인 또는 MCP 서버)
-
-### 권장 MCP 서버 (선택)
-웹 검색 MCP 서버가 설치되어 있으면 더 풍부한 검색 결과를 얻을 수 있습니다:
 - Firecrawl
 - Google Search MCP
 - Exa Search
 
 ---
 
-## 라이선스
+## License
 
 MIT
+
+---
+
+<div align="center">
+
+**Research that cites its sources. Every time.**
+
+</div>
