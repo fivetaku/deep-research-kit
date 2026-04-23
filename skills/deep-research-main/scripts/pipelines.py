@@ -6,6 +6,7 @@ Deep Research Pipeline Definitions
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from datetime import datetime
 
 
 class AgentType(Enum):
@@ -210,6 +211,18 @@ Return verification report with:
 - Final confidence rating
 """,
 }
+
+# Replace hardcoded year ranges with current year at module load time
+def _update_year_ranges() -> None:
+    yr = datetime.now().year
+    for k in AGENT_PROMPTS:
+        AGENT_PROMPTS[k] = (
+            AGENT_PROMPTS[k]
+            .replace("2024-2025", f"{yr - 1}-{yr}")
+            .replace("2023-2025", f"{yr - 2}-{yr}")
+        )
+
+_update_year_ranges()
 
 
 SYNTHESIS_PROMPT = """
