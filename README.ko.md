@@ -1,6 +1,10 @@
-[English](README.md) | 한국어
+[English](README.md) | 한국어 | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md)
 
 # insane-research
+
+<div align="center">
+  <img src="assets/hero.png" width="860" alt="insane-research 시네마틱 히어로">
+</div>
 
 > **insane-research — 멀티에이전트 소스 검증과 구조화된 산출물을 갖춘 AI 리서치 시스템.**
 

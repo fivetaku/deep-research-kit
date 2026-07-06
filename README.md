@@ -1,6 +1,10 @@
-English | [한국어](README.ko.md)
+English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md)
 
 # insane-research
+
+<div align="center">
+  <img src="assets/hero.png" width="860" alt="insane-research cinematic hero">
+</div>
 
 > **insane-research — AI-powered multi-agent deep research with source verification and structured outputs.**
 
