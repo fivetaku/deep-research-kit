@@ -25,6 +25,14 @@
 
 *Source: {TABLE_SOURCE}*
 
+### Structure & Flow Diagram
+
+```mermaid
+{MERMAID_DIAGRAM}
+```
+
+> 시각화 기본 규칙: **정량 발견은 표·차트로, 구조·인과·플로우는 Mermaid로** 표현한다. 이 섹션에 해당 구조가 없으면 블록을 제거한다(빈 슬롯 잔존 금지).
+
 ---
 
 ## {SUBSECTION_2_TITLE}

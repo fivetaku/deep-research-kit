@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.7.0] - 2026-07-22
+
+### Added — ULW 흡수 (insane 강점 유지 + ulw-research 메커니즘 채용)
+
+근거: `RESEARCH/lazycodex_ulw_vs_insane_20260722_140015/outputs/` 비교 분석 2편.
+
+- **접근 3단 에스컬레이션 (P1-0)**: Phase 3 접근을 WebFetch → **insane-search 엔진 위임**(설치 시, `python3 -m engine --json --trace` 계약 + `⛔ NOT EXHAUSTED`/untried_routes 준수 + R8 untrusted 취급) → 내장 폴백 체인으로 명문화. tool_strategy.md에 엔진 탐지·호출 계약 섹션 신설, 접근 SSOT를 insane-search 플러그인으로 선언(드리프트 방지). sources.jsonl에 `access` 메타(layer/verdict/profile_used/extraction_source/phase) 추가.
+- **EXPAND 리드 확장 루프 (P1-1)**: 모든 리서치 에이전트 응답 꼬리에 `## EXPAND`(LEAD/WHY/ANGLE | DEAD END | none) 필수. `artifacts/expansion_log.md` 전수 dedup(기각 리드 포함) + 명시적 수렴 규칙(미확인 리드 0 / 2연속 무신규 배치 / 깊이 4 도달 시 사용자 질의). 확장 배치는 기존 Rate-Limit Guard(2-3 동시) 내에서만.
+- **executable 실행 검증 (P1-2)**: `claim_type: "executable"` + `execution_proof`(script/output/env/verdict) 스키마 추가. `validate_ledger.py`가 executable 주장에 실행 증적을 강제 — 누락 시 exit 1, confirmed는 독립 교차검증 대체, refuted/partial은 annex행. `tests/test_validate_ledger.py` 신규(10 케이스: 기존 회귀 5 + executable 5).
+- **스폰 메시지 표준 3요소 (P1-3)**: agent_prompts.md에 예산 해제문·완료 정의·EXPAND 꼬리 필수화 — 서브에이전트의 "찾으면 정지" 브레이크를 명시적으로 풀지 않으면 얕은 답이 돌아오는 문제 대응.
+- **검색 크래프트 (P1-4)**: tool_strategy.md에 연산자 변주 표(site:/filetype:/intitle:/inurl:/exact/-term/OR/before:/after:), 에이전트당 최소 8-10 상이 쿼리, 고수익 조합, 언어 정책(주제 1차 언어 우선 스윕).
+- **시간 유효성 분리 (P2)**: sources·ledger에 `observed_at`(수집 시각)/`valid_at`(내용 유효 시점) 필드 — 릴리즈 노트/과거 기사/현재 상태 주장 혼동 방지.
+- **리포트 시각화 기본화 (P2)**: full_report_section.md에 Mermaid 다이어그램 슬롯("정량은 차트, 구조·인과는 Mermaid"), website_template.html에 mermaid@11.16.0(SRI 핀) + 다이어그램 블록.
+
+### Fixed
+- tool_strategy.md 스테일 접근 경로 정정: Reddit 비인증 `.json`+모바일 UA 안내 폐기(WAF 403 실측) → `.rss`+curl_cffi로 교체, Google 캐시(2024-07 종료) 제거 → Wayback/archive.today로 대체.
+
+### Infra (마켓플레이스 레포)
+- `tools/validate_skill_contracts.py` — 불가침 계약 문구 18종 grep-assert CI 게이트, validate-commands 워크플로우에 연결.
+
 ## [2.6.0] - 2026-06-22
 
 ### Added

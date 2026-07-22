@@ -33,12 +33,18 @@ claim_ledger.jsonl 레코드 스키마:
     "claim_id": "clm_001",
     "text": "주장 텍스트",
     "risk": "high" | "normal",        # high = 수치/점유율/날짜/법령/인과/재무
-    "claim_type": "numeric|legal|causal|descriptive",
+    "claim_type": "numeric|legal|causal|descriptive|executable",
     "source_ids": ["src_001", "src_003"],
-    "counter_search": "반증 검색 1회 요약 (high-risk 필수)",
+    "counter_search": "반증 검색 1회 요약 (high-risk 필수, executable은 execution_proof로 대체)",
     "counter_refuted": false,
     "conflicting": false,
-    "primary_source": true
+    "primary_source": true,
+    "execution_proof": {              # claim_type=executable 필수 (없으면 exit 1)
+      "script": "재현 스크립트 요약 또는 경로",
+      "output": "핵심 출력 발췌",
+      "env": "OS/런타임/의존성 버전",
+      "verdict": "confirmed|refuted|partial"
+    }
   }
   (status / confidence 는 입력에서 신뢰하지 않고 체커가 덮어쓴다.)
 """
@@ -131,6 +137,36 @@ def classify_claim(claim, sources_by_id):
 
     if claim.get("counter_refuted"):
         return "refuted", "counter-search로 반박됨", False
+
+    # 0) executable 주장: 검색 교차검증 대신 실행 증적(execution_proof)을 강제
+    #    (코드로 확정 가능한 주장은 판단이 아니라 실행으로 결판 — ulw-research Phase 3 채용)
+    if (claim.get("claim_type") or "").strip().lower() == "executable":
+        proof = claim.get("execution_proof")
+        verdict = (
+            (proof.get("verdict") or "").strip().lower()
+            if isinstance(proof, dict)
+            else ""
+        )
+        if not verdict:
+            return (
+                "unresolved",
+                "executable 주장인데 execution_proof 누락 (실행 검증 미수행)",
+                True,
+            )
+        if verdict == "refuted":
+            return "refuted", "실행 검증으로 반박됨 (execution_proof.verdict=refuted)", False
+        if verdict == "partial":
+            return "unresolved", "실행 검증 부분 확인 (partial) — 본문 단정 금지", False
+        if verdict == "confirmed":
+            if claim.get("conflicting"):
+                return "unresolved", "출처 간 충돌 미해소", False
+            # 실행 증적이 독립 교차검증을 대체 — 도메인 2개 규칙 미적용
+            return "verified", "실행 검증 통과 (execution_proof.verdict=confirmed)", False
+        return (
+            "unresolved",
+            f"execution_proof.verdict 값 불명 '{verdict}' (confirmed|refuted|partial만 허용)",
+            True,
+        )
 
     # 1) high-risk인데 반증 검색 자체를 안 함 → 절차 위반 (코드로 강제하는 CoV)
     if high and not counter:
@@ -280,8 +316,8 @@ def _report(hard_errors, verified, unresolved, refuted, process_violations, sign
     )
     if process_violations:
         print(
-            f"\n[FAIL] high-risk 주장 {len(process_violations)}건이 counter_search 누락 "
-            f"(exit 1) — 반증 검색 수행 후 ledger 갱신·재실행:",
+            f"\n[FAIL] 프로세스 위반 {len(process_violations)}건 (exit 1) — "
+            f"누락 절차(counter_search 또는 execution_proof) 수행 후 ledger 갱신·재실행:",
             file=out,
         )
         for v in process_violations:
