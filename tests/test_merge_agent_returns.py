@@ -92,6 +92,31 @@ def test_missing_input_exit2(tmp_path):
     assert r.returncode == 2
 
 
+def test_domain_grade_normalization(tmp_path):
+    """같은 도메인에 에이전트별 상이 등급 → 최빈(동률 시 보수) 등급으로 통일, 게이트 통과."""
+    a = dict(RET_A, sources=[
+        {"url": "https://d.example.com/1", "title": "1", "domain": "d.example.com", "quality_rating": "A"},
+        {"url": "https://b.example.org/y", "title": "B", "domain": "b.example.org", "quality_rating": "B"},
+    ], claims=[dict(RET_A["claims"][0], source_urls=["https://d.example.com/1", "https://b.example.org/y"])])
+    b = dict(RET_B, sources=[
+        {"url": "https://d.example.com/2", "title": "2", "domain": "d.example.com", "quality_rating": "B"},
+        {"url": "https://d.example.com/3", "title": "3", "domain": "d.example.com", "quality_rating": "B"},
+    ])
+    s = make_session(tmp_path, [a, b])
+    (s / "outputs").mkdir()
+    r = run_merge(s)
+    assert r.returncode == 0
+    assert "정규화" in r.stderr
+    sources = [json.loads(l) for l in (s / "sources" / "sources.jsonl").read_text().splitlines()]
+    d_grades = {x["quality_rating"] for x in sources if x["domain"] == "d.example.com"}
+    assert d_grades == {"B"}  # 최빈 B(2표) > A(1표)
+    gate = subprocess.run(
+        [sys.executable, str(SCRIPTS / "validate_ledger.py"), "--session", str(s)],
+        capture_output=True, text=True,
+    )
+    assert gate.returncode == 0, gate.stderr  # 등급 모순 하드에러 없음
+
+
 def test_unknown_claim_url_warns(tmp_path):
     bad = dict(RET_A, claims=[{"text": "x", "risk": "normal", "claim_type": "descriptive",
                                "source_urls": ["https://nowhere.example.com/"]}])

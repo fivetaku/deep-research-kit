@@ -106,6 +106,24 @@ def merge(returns, observed_at):
             if dup_of is None:
                 seen_queries[nq] = axis
 
+    # 도메인별 등급 정규화 — 게이트의 A-E 모순 검사 대응.
+    # 에이전트마다 같은 도메인에 다른 등급을 줄 수 있으므로(팬아웃 특성),
+    # 최빈 등급으로 통일하고 동률이면 보수적(더 낮은 품질) 쪽을 택한다.
+    by_domain = {}
+    for s in sources_out:
+        by_domain.setdefault(s["domain"], []).append(s)
+    for dom, group in by_domain.items():
+        grades = [g["quality_rating"] for g in group]
+        if len(set(grades)) <= 1:
+            continue
+        counts = {}
+        for g in grades:
+            counts[g] = counts.get(g, 0) + 1
+        best = max(counts.items(), key=lambda kv: (kv[1], kv[0]))[0]  # 최빈, 동률 시 뒤 글자(보수적)
+        for g in group:
+            g["quality_rating"] = best
+        warnings.append(f"도메인 '{dom}' 등급 불일치 {sorted(set(grades))} → '{best}'로 정규화")
+
     dup_count = sum(1 for q in queries_out if q["dup_of"])
     return {
         "sources": sources_out,
