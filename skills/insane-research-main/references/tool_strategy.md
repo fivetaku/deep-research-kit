@@ -112,6 +112,15 @@ cd "$ENGINE_DIR" && python3 -m engine "<URL>" --json --trace
 - **학술**: `site:arxiv.org {topic}` / `filetype:pdf {topic} survey`
 - **변경 이력**: `changelog OR "release notes" {제품} {버전}`
 - **대안 비교**: `{제품} vs OR alternative OR comparison`
+- **표준 분모(채택률·점유율 주장)**: 벤더 설문 대신 중립 분모를 먼저 — Stack Overflow Developer Survey, DB-Engines ranking, repology(배포판 패키징), 공식 레지스트리 다운로드 통계. "누가 얼마나 쓰나"류 주장은 이 분모 없이 단정하지 않는다.
+
+### 다중 표면 삼각측량 (도메인 독립 ≠ 내용 대조)
+
+독립 도메인 2개 규칙은 필요조건이지 충분조건이 아니다. **같은 사실이라도 성격이 다른 표면(surface)끼리 대조**해야 내용 모순이 잡힌다:
+- 조직 구성·소속 → 공식 소개 페이지 **vs 저장소 파일**(MAINTAINERS/GOVERNANCE) 대조
+- 버전·날짜 → 렌더된 릴리즈 페이지 **vs 기계판독 API**(published_at) 대조 — 렌더 페이지는 연도 오파싱·캐시 스테일이 흔하다
+- 법률·정책 → 마케팅 블로그 **vs 법률 원장 페이지/LICENSE 원문** 대조
+표면 간 충돌이 나면 그 주장은 단정하지 않고 충돌을 명시한다(ledger `conflicting` 또는 Unresolved행).
 
 ### 언어 정책
 

@@ -257,6 +257,8 @@ Before generating ANY search query, determine today's date from the system conte
 
 **1차 소스 우선** — 정부/법령 DB(예: law.go.kr·moleg), 공시(SEC/IR), 피어리뷰를 2차 애그리게이터·블로그보다 **먼저** 시도하고, `quality_rubric.md`의 Legal/Policy·Business 기준으로 등급을 매겨 `primary_source` 충족 여부를 ledger에 기록한다.
 
+**다중 표면 대조** — 독립 도메인 수와 별개로, 조직 구성·버전·법률 같은 주장은 **성격이 다른 표면**(공식 페이지 vs 저장소 파일 vs 기계판독 API)끼리 대조한다. 표면 간 내용이 충돌하면 `conflicting: true`로 두고 단정하지 않는다 — 도메인 2개 규칙만으로는 같은 계열 표면의 동반 오류를 못 잡는다(세부: tool_strategy.md "다중 표면 삼각측량").
+
 → 이 레이어는 **핵심 주장에만** 적용한다. 본문의 폭넓은 서사·맥락·가독성은 그대로 유지하되, 핵심 수치/주장만 ledger 게이트를 통과시킨다.
 
 ### Phase 5: Knowledge Synthesis

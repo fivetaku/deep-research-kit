@@ -73,6 +73,31 @@ def _load_body(out_dir):
     return "\n".join(parts)
 
 
+# annex 헤딩 패턴: Unresolved/Refuted annex는 미확정·반박 주장을 "나열하는 곳"이므로
+# leak 스캔에서 제외한다 (SKILL.md 계약이 annex 노출을 요구하는데 leak으로 잡으면 모순).
+_ANNEX_HEADING = re.compile(
+    r"^#{1,6}\s*.*(Unresolved|Refuted|미확정|미해결|반박|기각)", re.IGNORECASE
+)
+
+
+def _strip_annex_sections(body):
+    """annex 섹션(헤딩~다음 동급 이상 헤딩 직전)을 제거한 본문을 반환. leak 스캔 전용."""
+    lines = body.splitlines()
+    out, skipping, skip_level = [], False, 0
+    for line in lines:
+        m = re.match(r"^(#{1,6})\s", line)
+        if m:
+            level = len(m.group(1))
+            if _ANNEX_HEADING.match(line):
+                skipping, skip_level = True, level
+                continue
+            if skipping and level <= skip_level:
+                skipping = False
+        if not skipping:
+            out.append(line)
+    return "\n".join(out)
+
+
 def _content(s):
     """공백·구두점 제거한 content 문자열(한글/영숫자/%만 유지) — 조사·띄어쓰기 흔들림 흡수."""
     return re.sub(r"[^0-9A-Za-z가-힣%]", "", s or "")
@@ -115,11 +140,14 @@ def evaluate(out_dir, sources_path):
     verified_blob = _content(" ".join(c.get("text", "") for c in verified))
 
     # 3) leak: unresolved/refuted 주장이 본문에 단정형으로 샜는가
+    #    annex(Unresolved/Refuted 섹션)는 계약상 이들을 나열하는 곳이므로 스캔에서 제외.
+    body_no_annex = _strip_annex_sections(body)
+    body_no_annex_blob = _content(body_no_annex)
     leaks = []
     for claim in unresolved + refuted:
         cid = claim.get("claim_id", "")
         text = claim.get("text", "")
-        if _claim_present(text, cid, body_blob, body, exclude_blob=verified_blob):
+        if _claim_present(text, cid, body_no_annex_blob, body_no_annex, exclude_blob=verified_blob):
             leaks.append({"claim_id": cid, "text": text, "status": claim.get("status")})
     pool = len(unresolved) + len(refuted)
     leak_rate = (len(leaks) / pool) if pool else 0.0

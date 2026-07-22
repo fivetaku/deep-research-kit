@@ -14,6 +14,11 @@
 - **시간 유효성 분리 (P2)**: sources·ledger에 `observed_at`(수집 시각)/`valid_at`(내용 유효 시점) 필드 — 릴리즈 노트/과거 기사/현재 상태 주장 혼동 방지.
 - **리포트 시각화 기본화 (P2)**: full_report_section.md에 Mermaid 다이어그램 슬롯("정량은 차트, 구조·인과는 Mermaid"), website_template.html에 mermaid@11.16.0(SRI 핀) + 다이어그램 블록.
 
+### Added — 실전 벤치마크(2026-07-22, vs ulw-research) 후속 보강
+- **eval_report.py annex 예외**: Unresolved/Refuted annex 섹션은 leak 스캔에서 제외(헤딩 기반 섹션 스트립) — 계약이 요구하는 annex 나열이 leak으로 오탐되던 모순 해소. `tests/test_eval_report.py` 신규(5 케이스: annex 인용 무해·한국어 헤딩·본문 누출 FAIL 유지·annex 경계·dangling 회귀).
+- **다중 표면 삼각측량**: 도메인 독립 ≠ 내용 대조 — 조직 구성/버전/법률 주장은 이질 표면(공식 페이지 vs 저장소 파일 vs 기계판독 API) 대조를 요구(SKILL.md Phase 4 + tool_strategy.md). 벤치에서 도메인 2개 통과 주장의 표면 충돌(TSC 소속)이 실측된 데서 도출.
+- **표준 분모 소스**: 채택률·점유율 주장은 벤더 설문 대신 중립 분모(SO Developer Survey·DB-Engines·repology) 우선 — 크래프트 고수익 조합에 추가.
+
 ### Fixed
 - tool_strategy.md 스테일 접근 경로 정정: Reddit 비인증 `.json`+모바일 UA 안내 폐기(WAF 403 실측) → `.rss`+curl_cffi로 교체, Google 캐시(2024-07 종료) 제거 → Wayback/archive.today로 대체.
 
