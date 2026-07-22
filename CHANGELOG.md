@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.8.0] - 2026-07-23
+
+### Added — Workflow 팬아웃 모드 (공식 문서 + 실측 프로브 근거)
+
+- **Phase 3 실행 모드 선택**: 세션에 Workflow 도구가 있으면 **팬아웃 모드**(폭 5-6, `references/workflow_fanout.md`), 없으면 기존 배치 모드(2-3, Rate-Limit Guard) 폴백. 실측: 6폭 버스트 6/6 무사고(3.8s), 리서치형 5폭 5/5 무사고(16s).
+- **AGENT_RETURN_SCHEMA 강제 반환 + 결정론 취합기** `scripts/merge_agent_returns.py`: 에이전트 JSON 반환 배열 → sources.jsonl(URL dedup·전역 id)/claim_ledger.jsonl(URL→id 매핑)/expansion_log.md/query_log.md(교차 에이전트 쿼리 중복 표시) 자동 생성 — 벤치 실측 병목(수작업 병합 ~7분) 제거. 취합 산출물이 validate_ledger 게이트에 무수정으로 물리는 것까지 테스트(총 19 pytest).
+- **검색 예산 회계**: Claude Code 세션당 WebSearch 200회 캡(전 서브에이전트 합산, 초과 시 조용한 no-op — v2.1.212+) 대응. 축당 예산 배분, search_count 합산·80% 경고, "빈 검색 연속 = 캡 의심" 진단 규칙.
+- **WebFetch 손실성 명시**: "부재 판정은 WebFetch로 하지 않는다" (공식 lossy-by-design 근거).
+
 ## [2.7.0] - 2026-07-22
 
 ### Added — ULW 흡수 (insane 강점 유지 + ulw-research 메커니즘 채용)

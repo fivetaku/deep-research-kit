@@ -24,6 +24,8 @@ WebSearch(query="transformer architecture survey 2025 arxiv")
 
 모든 리서치의 시작점. 검색 결과(제목, snippet, URL)를 획득한다.
 
+> ⚠️ **세션당 200회 캡**: WebSearch는 세션당 200회(메인+모든 서브에이전트 합산, v2.1.212+)이며 초과분은 에러가 아니라 **조용한 빈 검색**이 된다. 검색이 갑자기 계속 빈 결과면 캡 도달을 의심하고 재시도하지 않는다. 팬아웃 리서치는 검색 예산을 배분한다(`workflow_fanout.md` §검색 예산 회계).
+
 ### WebFetch — 콘텐츠 추출
 
 ```python
@@ -33,6 +35,8 @@ WebFetch(url="https://example.com/article", prompt="Extract key findings and dat
 검색에서 발견한 URL의 본문 추출. 대부분의 일반 웹페이지에서 동작.
 
 **제한**: x.com(402), reddit.com(차단), 네이버 블로그(차단) 등 일부 사이트에서 실패 → 플랫폼별 접근 전략 또는 Fallback으로 전환.
+
+> ⚠️ **설계상 손실(lossy by design)**: WebFetch는 원문이 아니라 소형 모델의 추출 결과를 반환하며, 추출 프롬프트가 묻지 않은 내용은 "없다"고 나올 수 있다(공식 문서 명시). **"이 페이지에 X가 없다"는 부재 판정을 WebFetch 결과로 내리지 않는다** — 부재 확인이 필요하면 insane-search 엔진이나 원문(curl/API)으로 한다.
 
 ### Bash(curl) — 직접 HTTP 요청
 

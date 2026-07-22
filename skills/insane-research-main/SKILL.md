@@ -202,6 +202,10 @@ Before generating ANY search query, determine today's date from the system conte
 ---
 
 ### Phase 3: Iterative Querying
+
+**실행 모드 선택 (진입 시 1회, state.json `exec_mode`에 기록)** — 세션에 **Workflow 도구가 있으면 팬아웃 모드**(폭 5-6, `references/workflow_fanout.md`의 스키마 강제 반환 + `merge_agent_returns.py` 자동 취합 + 검색 예산 회계)를 쓰고, 없으면 아래 배치 모드를 쓴다. 팬아웃 모드에서 null로 돌아온(실패) 축은 반드시 보고하고 배치 모드로 보충한다.
+
+배치 모드 (폴백 기본):
 - Execute searches systematically, throttled to 2-3 concurrent agents (Rate-Limit & Reliability Guard) with liveness check + sequential fallback
 - Navigate and extract relevant information — **접근 3단 에스컬레이션**:
   1. **WebFetch 1회** (일반 페이지 최저 비용)
