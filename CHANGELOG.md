@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.2] - 2026-07-23
+
+### Fixed — strict 핸드오프 스키마 정렬
+
+- `pipelines.py`의 `strict_verification_handoff()`가 v2.5.0+ 장부 스키마에 없는 키(claim/verification_question 및 파생 필드)를 읽어 항상 빈 페이로드를 내던 드리프트 수정 — 실제 스키마(claim_id/text/source_ids + status/status_reason)로 정렬, status 부재 레코드는 "모르면 미확정" 원칙대로 unresolved 취급.
+- 스테일 중복 분류기 `classify_claim_status()` 삭제 — 분류 SSOT는 `validate_ledger.classify_claim`(counter-search·execution_proof·충돌 검사 포함).
+- 회귀 테스트 `tests/test_strict_handoff.py` 2종 추가 (suite 22 passed).
+
 ## [2.8.1] - 2026-07-23
 
 ### Changed — 엔진 위임 비동기 기본화
