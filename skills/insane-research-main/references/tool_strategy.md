@@ -86,6 +86,16 @@ cd "$ENGINE_DIR" && python3 -m engine "<URL>" --json --trace
 - **terminal 실패**(auth_required/404/paywall): 정직 실패 — `sources/failed_urls.txt`에 기록하고 동일 주제의 대체 소스를 WebSearch로 재검색한다.
 - 결과 메타(`verdict`/`profile_used`/`extraction_source`/trace phase)를 sources.jsonl의 `access` 필드에 기록한다.
 
+### 비동기 위임 — 기본 패턴 (긴 격자에 에이전트가 붙잡히지 않게)
+
+엔진 호출은 **기본적으로 백그라운드로 시작**하고 빠른 결과만 즉시 수거한다. 어려운 WAF 격자(최악 ~65초)가 에이전트 전체를 세워두는 것을 막는다:
+
+1. **시작**: `run_in_background` Bash로 `cd "$ENGINE_DIR" && python3 -m engine "<URL>" --json > <출력파일>` 실행.
+2. **빠른 수거**: ~15초 안에 끝나면 즉시 결과를 수거해 인라인처럼 쓴다 (대부분의 공식 API 경로·일반 페이지는 여기서 끝난다).
+3. **병행**: 안 끝났으면 기다리지 말고 다음 쿼리/소스 조사를 계속한다. 같은 도메인에서 이미 긴 격자를 겪었다면 그 도메인의 추가 URL은 폴링 없이 바로 병행 모드.
+4. **수거 게이트 (불가침)**: 에이전트는 **모든 백그라운드 엔진 태스크를 수거하기 전에 반환하지 않는다** — 수거 전 반환 금지. URL당 총 90초를 넘기면 그 URL은 실패로 기록하고 `findings_summary`에 명시한 뒤 대체 소스로 전환한다 (조용한 소스 유실 금지).
+5. 백그라운드 회수 소스는 `access` 메타에 `"async": true`를 표시한다.
+
 ### 주의
 
 - 429(rate-limit)는 terminal이 아니다 — 엔진이 Retry-After 백오프로 재시도한다.
