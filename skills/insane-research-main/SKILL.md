@@ -335,6 +335,14 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/insane-research-main/scripts/eval_report.p
 - `verdict: FAIL`이면(미검증/반박 주장이 본문에 샜거나 인용이 레지스트리에 없음) **고쳐서 다시 돌린다** — 그 상태로 마감 금지.
 - 지표(`leak_rate`·`citation_resolution_rate`·`orphan_source_rate`·`verified_coverage_rate`)는 `outputs/eval_report.json`에 저장된다. 게이트 on/off A/B나 회귀 추적에 쓴다.
 
+#### Claim/Source 각주 변환 (옵션)
+
+본문의 `[clm_001] [src_001]` 태그를 표준 마크다운 각주(`[^1]`) 및 `## 각주 (Footnotes)` 섹션으로 자동 치환하려면 다음 스크립트를 실행한다:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/insane-research-main/scripts/convert_footnotes.py" --session "RESEARCH/{topic}_{timestamp}" --report "RESEARCH/{topic}_{timestamp}/outputs/report.md"
+```
+
 ---
 
 ## Multi-Agent Research Strategy
@@ -672,6 +680,7 @@ State management scripts are available at:
 |--------|---------|------|
 | `validate_ledger.py` | **검증 게이트 (필수).** claim_ledger + sources를 읽어 status를 결정론적으로 계산, `verified_claims.json` 생산, `state.json`에 서명 기록 | **authoritative** — Phase 5/7 진입 게이트 |
 | `eval_report.py` | **평가 채점기 (필수).** 본문이 검증 계약을 지켰는지 측정 — leak/citation-resolution/orphan/coverage 4지표, `eval_report.json` 생산 | **authoritative** — Phase 7 마감 자기검증 |
+| `convert_footnotes.py` | **각주 치환기 (선택).** 본문의 claim/source 태그를 마크다운 각주([^1])로 자동 변환 | helper (각주 치환) |
 | `orchestrator.py` | 세션 폴더/`state.json` 생성·소스 append 등 **상태 헬퍼**. 단, 내부 phase 전이 로직은 권위가 없다(LLM이 SKILL.md 흐름으로 오케스트레이션) | helper (정적 자산) |
 | `pipelines.py` | agent prompt 템플릿·clarification·synthesis 프롬프트 **정적 자산**. `generate_research_plan()` 등 빈 스텁 함수는 실행 경로가 아니다 | helper (정적 자산) |
 
