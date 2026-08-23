@@ -236,20 +236,26 @@ Before generating ANY search query, determine today's date from the system conte
   "risk": "high | normal",
   "claim_type": "numeric | legal | causal | descriptive | executable",
   "source_ids": ["src_001", "src_003"],
-  "counter_search": "반증 검색 1회 결과 요약 (high-risk 필수)",
+  "counter_search": {
+    "query": "실제로 실행한 반증 검색 쿼리 (high-risk 필수)",
+    "urls": ["반증 검색에서 열어본 URL — sources.jsonl에 등록된 것만"],
+    "summary": "반증 검색 결과 요약"
+  },
   "counter_refuted": false,
   "conflicting": false,
-  "primary_source": true,
   "valid_at": "2024-06-15"
 }
 ```
 
-> **`status`/`confidence`는 직접 쓰지 않는다.** `validate_ledger.py`가 source_ids를 레지스트리와 대조해 독립 도메인 수·counter_search 유무·1차소스·등급을 보고 **status를 계산**한다. `risk:"high"`는 수치/점유율/날짜/법령/인과/재무 주장에 부여한다. `source_ids`는 `sources/sources.jsonl`의 `id`와 정확히 일치해야 한다(불일치 시 게이트가 하드 에러).
+> **`status`/`confidence`/`primary_source`는 직접 쓰지 않는다.** `validate_ledger.py`가 source_ids를 레지스트리와 대조해 **status를 계산**하고, `primary_source`는 소스의 `type`(standards_document/official_docs/government/filing/peer_reviewed 등 `PRIMARY_SOURCE_TYPES`)에서 **파생 계산**한다 — 자기신고는 무시된다. `risk:"high"`는 수치/점유율/날짜/법령/인과/재무 주장에 부여한다. `source_ids`는 `sources/sources.jsonl`의 `id`와 정확히 일치해야 하고, `counter_search.urls`의 URL도 레지스트리에 등록돼 있어야 한다(불일치 시 게이트가 하드 에러). **counter_search는 자유 문자열이 아니라 구조체다** — 문자열로 쓰면 감사 불가로 절차 위반(exit 1) 처리된다.
+>
+> **독립성은 도메인이 아니라 조직(org) 단위로 센다.** peps.python.org와 docs.python.org는 독립 1개다(같은 python.org). 소스에 `org` 필드를 명시해 추론을 덮어쓸 수 있고, github.io류 호스팅 도메인은 서브도메인을 별개 주체로 센다. 또한 high-risk 주장은 **성격이 다른 표면(소스 `type`) 2종 이상**을 요구한다 — 같은 type 소스 2개는 동반 오류를 못 잡는다.
 
 **Abstention 강제 규칙 (불가침)** — 다음 중 하나라도 해당하면 `status=unresolved`("미확정")로 두고 **본문에서 단정 금지**. 반드시 "미확정 / 확인 필요"로 표기하고 `Unresolved` 섹션에 모은다:
-- 독립 출처 2개 미만 (`source_count < 2`)
+- 독립 출처(조직 기준) 2개 미만
 - 출처 간 충돌이 해소되지 않음
-- 1차 소스 미도달 (강한 주장인데 `primary_source=false`)
+- 1차 소스 미도달 (high-risk인데 `PRIMARY_SOURCE_TYPES` type 소스 없음)
+- 표면(type) 다양성 미충족 (high-risk인데 소스 type 1종)
 
 **경량 red-team (필수)** — 각 핵심 주장마다 **반증 counter-search 1회**를 수행한다. 신뢰할 만한 반박이 나오면 `status=refuted`로 두고 `Refuted` 섹션으로 보낸다(본문 단정 금지).
 
@@ -280,6 +286,8 @@ Before generating ANY search query, determine today's date from the system conte
 - 폭넓은 서사·맥락·가독성 문장은 그대로 자유롭게 쓰되, **검증 게이트는 핵심 주장에만** 적용한다.
 
 > 이유: 체커만이 `verified_claims.json`을 생산한다. 체커를 건너뛰면 합성할 입력이 비어 자기파괴적이므로, 검증을 우회할 수 없다(순수 프롬프트 권고가 아니라 데이터 의존성으로 강제).
+>
+> **게이트가 실패하면(exit 1·2) 체커는 `verified_claims.json`을 아예 쓰지 않고 이전 실행이 남긴 파일도 삭제한 뒤 `outputs/gate_failed.json`에 차단 사유를 남긴다.** 즉 실패 상태에서는 합성 입력이 물리적으로 존재하지 않는다. `outputs/gate_failed.json`이 보이면 **보고서를 쓰지 말고** 사유를 해소한 뒤 게이트를 다시 통과시킨다.
 
 ### Phase 6: Quality Assurance
 - Check for hallucinations and errors
@@ -297,13 +305,31 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/insane-research-main/scripts/validate_ledg
 
 종료 코드에 따라:
 - **exit 2 (하드 에러)** — 스키마 깨짐·미등록 source id·A-E 등급 모순. 데이터를 고치고 재실행. **절대 Phase 7로 진행 금지.**
-- **exit 1 (프로세스 위반)** — high-risk 주장에 `counter_search` 누락. 해당 주장에 반증 검색 1회를 수행해 ledger를 갱신하고 재실행.
+- **exit 1 (프로세스 위반)** — high-risk 주장에 `counter_search` 누락, executable 주장에 `execution_proof` 누락. 해당 절차를 수행해 ledger를 갱신하고 재실행.
 - **exit 0 (통과)** — `outputs/{verified,unresolved,refuted}_claims.json` 생성, `state.json.verification.signature` 기록 완료. 이제 Phase 7 진행 가능.
+
+> **실패는 곧 합성 차단이다.** exit 1·2에서는 `verified_claims.json`이 생성되지 않고 기존 파일도 삭제되며 `outputs/gate_failed.json`이 남는다. 이 마커가 있는 동안 보고서를 쓰면 근거 파일 없이 쓰는 것이므로 금지다.
+>
+> 통과했더라도 `unresolved_ratio`가 50%를 넘으면 `[WARN]`이 뜬다 — exit code는 0이지만 근거가 얕다는 뜻이니 보강 검색을 우선 검토한다(`--max-unresolved-ratio`로 임계 조정).
+
+#### 보고서 본문 대조 (필수 — Phase 7 직전)
+
+게이트 통과만으로는 "검증된 주장만 본문에 썼는가"를 알 수 없다. 보고서 초안을 쓴 뒤 반드시 대조 게이트를 돌린다:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/insane-research-main/scripts/verify_report.py" --session "RESEARCH/{topic}_{timestamp}"
+```
+
+- **exit 2** — `gate_failed.json` 존재 또는 `verified_claims.json` 없음. 애초에 합성하면 안 되는 상태다.
+- **exit 1** — 본문 계약 위반: ①`unresolved`/`refuted` 주장을 annex 밖 본문에 인용 ②ledger에 없는 유령 `claim_id` 인용 ③verified 주장 인용이 0건(검증 결과가 보고서에 연결되지 않음).
+- **exit 0** — 통과. `state.json.report_verification`에 커버리지가 기록된다.
+
+→ 이 대조가 작동하려면 **핵심 주장 문장에 `(clm_XXX)` 형태로 claim_id를 표기**해야 한다. 미확정·반증 주장은 제목에 `미확정`/`Unresolved`/`반증`/`Refuted`/`부록`이 들어간 섹션에서만 언급한다(그 구역은 annex로 인식된다).
 
 마감 점검:
 - **`state.json`에 `verification.signature`가 있고 `verification.passed=true`인지** 확인한다(없으면 게이트 미실행 = 미완).
+- **`state.json.report_verification.passed=true`인지** 확인한다(본문 대조 게이트 통과 증거).
 - 보고서에 `Confidence` / `Refuted` / `Unresolved` 3개 섹션을 노출한다.
-- `unresolved`/`refuted` 주장이 본문에 단정형으로 섞이지 않았는지 최종 점검한다(verified-only 합성 게이트 위반 여부).
 
 #### Strict 모드 (옵트인 하이브리드 검증)
 
@@ -670,7 +696,8 @@ State management scripts are available at:
 
 | Script | Purpose | 권위 |
 |--------|---------|------|
-| `validate_ledger.py` | **검증 게이트 (필수).** claim_ledger + sources를 읽어 status를 결정론적으로 계산, `verified_claims.json` 생산, `state.json`에 서명 기록 | **authoritative** — Phase 5/7 진입 게이트 |
+| `validate_ledger.py` | **검증 게이트 (필수).** claim_ledger + sources를 읽어 status를 결정론적으로 계산, `verified_claims.json` 생산, `state.json`에 서명 기록. **실패 시 verified를 삭제하고 `gate_failed.json` 기록(합성 입력 소멸)** | **authoritative** — Phase 5/7 진입 게이트 |
+| `verify_report.py` | **본문 대조 게이트 (필수).** 보고서가 verified 주장만 단정 인용했는지 검사 — 미검증 인용·유령 claim_id·인용 커버리지 | **authoritative** — Phase 7 진입 게이트 |
 | `eval_report.py` | **평가 채점기 (필수).** 본문이 검증 계약을 지켰는지 측정 — leak/citation-resolution/orphan/coverage 4지표, `eval_report.json` 생산 | **authoritative** — Phase 7 마감 자기검증 |
 | `orchestrator.py` | 세션 폴더/`state.json` 생성·소스 append 등 **상태 헬퍼**. 단, 내부 phase 전이 로직은 권위가 없다(LLM이 SKILL.md 흐름으로 오케스트레이션) | helper (정적 자산) |
 | `pipelines.py` | agent prompt 템플릿·clarification·synthesis 프롬프트 **정적 자산**. `generate_research_plan()` 등 빈 스텁 함수는 실행 경로가 아니다 | helper (정적 자산) |

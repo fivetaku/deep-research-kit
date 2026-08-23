@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.9.0] - 2026-08-19
+
+### Fixed — 데이터 흐름 락 실효화 (게이트 실패가 실제로 합성을 막게)
+
+- **`validate_ledger.py`가 exit≠0에서도 `verified_claims.json`을 써서 락이 헐거웠던 문제 수정.** 실패 시 allowlist를 생성하지 않고 **이전 실행이 남긴 파일도 삭제**한 뒤 `outputs/gate_failed.json`(exit_code·kind·reasons·next_step)을 남긴다 — 실패 상태에서는 합성 입력이 물리적으로 존재하지 않는다. 통과 시 마커는 자동 제거. 실측 배경: `RESEARCH/akamai-bypass_20260723_120129`는 절차위반 40건(exit 1, `passed=false`)인데도 전체 보고서가 생성돼 있었다.
+- 하드 에러(exit 2)에서도 `state.json.verification`에 `passed=false`·`blocked` 사유를 남긴다(이전에는 아무 기록도 남기지 않아 "게이트 미실행"과 구분 불가).
+
+### Added — 보고서 본문 대조 게이트 `scripts/verify_report.py`
+
+- 보고서가 **verified 주장만 단정형으로 인용했는지** 코드로 대조한다. 게이트 통과 후 본문에 미검증 문장을 쓰는 경로가 무방비였던 공백을 메움.
+- 검사: ①`gate_failed.json`/`verified_claims.json` 부재 → exit 2 ②unresolved·refuted claim_id를 annex 밖 본문에 인용 → exit 1 ③ledger에 없는 유령 claim_id 인용 → exit 1 ④verified 인용 0건 → exit 1, 커버리지 미달(`--min-coverage`) → exit 1.
+- annex 구역은 마크다운 제목(미확정/Unresolved/반증/Refuted/부록/Annex/Appendix)으로 판정하며, 같거나 상위 레벨의 새 제목에서 구역이 끝난다. 결과는 `state.json.report_verification`에 기록.
+
+### Added — 미확정 비율 계측
+
+- `unresolved_ratio`를 계산해 `state.json.verification`에 기록하고, 임계치(기본 0.5, `--max-unresolved-ratio`) 초과 시 `[WARN]` 출력. exit code는 바꾸지 않는다 — 통과 여부만 보면 "84건 중 42건 미확정인데 passed=true"(fastapi-fastmcp 세션 실측) 같은 얕은 근거를 놓치기 때문.
+
+### Changed — 자기신고 필드의 증적 승격 (2026-08-24, breaking)
+
+- **`counter_search` 구조체 강제**: high-risk 주장의 counter_search는 `{query, urls, summary}` 구조체여야 한다. 자유 문자열은 감사 불가 → 절차 위반(exit 1). `urls`의 각 URL은 sources.jsonl에 등록돼 있어야 하며 미등록 시 하드 에러(exit 2). 반증 검색을 "했다고 쓰는 것"이 아니라 실행 쿼리·열어본 소스로 감사 가능하게.
+- **`primary_source` 파생 계산**: 주장 레코드의 자기신고를 무시하고 소스 `type`(`PRIMARY_SOURCE_TYPES`: standards_document/official_docs/government/filing/peer_reviewed/repository/api 등)에서 계산한다. 출력 레코드의 primary_source도 파생값으로 덮어쓴다.
+- **독립성 단위 도메인 → 조직(org)**: peps.python.org + docs.python.org가 독립 2개로 세어지던 구멍 봉합(2.9.0 라이브 테스트에서 실측 발견). 소스 `org` 필드로 명시 지정 가능, 없으면 eTLD+1 근사 추론(github.io류 호스팅 도메인·co.kr류 2단 접미사는 예외 목록으로 3레이블 유지).
+- **high-risk 다중 표면 강제**: 소스 표면(type) 2종 미만이면 unresolved — SKILL.md가 프롬프트로만 권고하던 "다중 표면 대조"를 코드 게이트로. 
+- 스키마 문서 정렬: SKILL.md·phase_contracts.md·workflow_fanout.md(AGENT_RETURN_SCHEMA counter_search object화)·merge 테스트 픽스처.
+
+### Tests
+
+- `tests/test_validate_ledger.py` +5(락 하드닝·스테일 삭제·마커 정리·비율 경고) +9(counter 구조체·URL 대조·조직 독립성·호스팅 예외·org 오버라이드·파생 primary·표면 다양성·normal 면제), `tests/test_verify_report.py` 신규 9종. suite 22 → 45 passed.
+
 ## [2.8.2] - 2026-07-23
 
 ### Fixed — strict 핸드오프 스키마 정렬

@@ -33,7 +33,7 @@ Phase 3의 검색 실행을 Claude Code 네이티브 **Workflow 도구**로 수�
       "properties": {"text": {"type": "string"}, "risk": {"type": "string", "enum": ["high", "normal"]},
         "claim_type": {"type": "string", "enum": ["numeric", "legal", "causal", "descriptive", "executable"]},
         "source_urls": {"type": "array", "items": {"type": "string"}},
-        "counter_search": {"type": "string"}, "primary_source": {"type": "boolean"},
+        "counter_search": {"type": "object", "properties": {"query": {"type": "string"}, "urls": {"type": "array", "items": {"type": "string"}}, "summary": {"type": "string"}}, "required": ["query"]},
         "conflicting": {"type": "boolean"}, "valid_at": {"type": "string"},
         "execution_proof": {"type": "object"}}}},
     "expand_leads": {"type": "array", "items": {"type": "object",
@@ -87,7 +87,7 @@ return { returns: [...wave1, ...wave2], leads_total: leads.length }
 #    → <session>/artifacts/agent_returns.json
 # 2) 결정론 취합 — sources.jsonl / claim_ledger.jsonl / expansion_log.md / query_log.md 생성
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/insane-research-main/scripts/merge_agent_returns.py" --session "<session>"
-# 3) 이후는 기존 파이프라인 그대로: 부족 주장 보강 → validate_ledger.py → 합성 → eval_report.py
+# 3) 이후는 기존 파이프라인 그대로: 부족 주장 보강 → validate_ledger.py → 합성 → verify_report.py → eval_report.py
 ```
 
 ## 검색 예산 회계 (⚠️ 필수 — 세션 200캡 대응)

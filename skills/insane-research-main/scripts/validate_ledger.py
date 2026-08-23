@@ -11,6 +11,9 @@ validate_ledger.py — insane-research의 **결정론적 검증 게이트** (con
   - 이 스크립트만이 `outputs/verified_claims.json`을 생산한다.
   - SKILL.md는 "Phase 5 합성은 verified_claims.json만 근거로 한다"고 계약한다.
   - 따라서 체커를 건너뛰면 합성할 입력 자체가 없다(자기파괴적) → 우회 불가.
+  - **exit≠0이면 verified_claims.json을 쓰지 않고 기존 파일도 삭제**한 뒤
+    `outputs/gate_failed.json`(차단 사유)을 남긴다 → 실패한 게이트로는 합성 입력이
+    존재할 수 없다. (v2.9.0 이전에는 exit 1에서도 verified를 써서 락이 헐거웠다.)
   - 보강: 통과 시 ledger+verified의 sha256 `signature`를 state.json에 기록(위조 불가).
 
 입력:
@@ -18,9 +21,10 @@ validate_ledger.py — insane-research의 **결정론적 검증 게이트** (con
   <session>/sources/sources.jsonl          (소스 레지스트리)
 
 출력:
-  <session>/outputs/verified_claims.json   (status==verified 만 — 합성 allowlist)
+  <session>/outputs/verified_claims.json   (status==verified 만 — 합성 allowlist, exit 0에서만 생성)
   <session>/outputs/unresolved_claims.json (미확정 — annex 전용)
   <session>/outputs/refuted_claims.json    (반증 폐기 — annex 전용)
+  <session>/outputs/gate_failed.json       (exit≠0일 때만 — 차단 사유. 통과 시 삭제)
   <session>/state.json 의 "verification" 블록(signature 포함)
 
 종료 코드:
@@ -59,6 +63,38 @@ from datetime import datetime, timezone
 VALID_GRADES = {"A", "B", "C", "D", "E"}
 REQUIRED_CLAIM_FIELDS = ("claim_id", "text", "source_ids")
 
+# 1차 소스로 인정하는 소스 type (sources.jsonl의 type 필드 기준).
+# primary_source는 주장 레코드의 자기신고가 아니라 이 집합으로 **파생 계산**한다.
+PRIMARY_SOURCE_TYPES = {
+    "standards_document",   # PEP/RFC/W3C 등 표준 문서
+    "official_docs",        # 공식 문서
+    "official_blog",        # 벤더 공식 블로그(1차 발표)
+    "official_release",     # 릴리즈 노트
+    "government",           # 정부/법령 DB
+    "law_db",
+    "filing",               # 공시 (SEC/IR)
+    "sec_filing",
+    "peer_reviewed",        # 피어리뷰 논문
+    "primary",              # 명시적 1차 표시
+    "repository",           # 코드 저장소 원본 (기계판독 표면)
+    "api",                  # 기계판독 API 표면
+}
+
+# 서브도메인이 곧 별개 주체인 호스팅 도메인 — org 추론 시 3레이블 유지.
+HOSTING_SUFFIXES = {
+    "github.io", "gitlab.io", "readthedocs.io", "netlify.app",
+    "vercel.app", "pages.dev", "web.app", "blogspot.com",
+    "wordpress.com", "substack.com", "hashnode.dev", "notion.site",
+}
+
+# 국가 2단 공용 접미사 — org 추론 시 3레이블 유지 (co.kr 등).
+SECOND_LEVEL_SUFFIXES = {
+    "co.kr", "go.kr", "or.kr", "ac.kr", "re.kr", "pe.kr",
+    "co.uk", "ac.uk", "gov.uk", "org.uk",
+    "co.jp", "or.jp", "ne.jp", "go.jp", "ac.jp",
+    "com.au", "org.au", "com.cn", "com.br", "com.tw",
+}
+
 
 def _read_jsonl(path):
     """JSONL 읽기. (records, errors) 반환."""
@@ -86,6 +122,48 @@ def _domain_of(src):
     if "://" in url:
         url = url.split("://", 1)[1]
     return url.split("/", 1)[0] if url else ""
+
+
+def _org_of(src):
+    """
+    독립성 판정 단위 = 조직(org). 명시적 `org` 필드가 있으면 그것을,
+    없으면 호스트에서 등록가능도메인(eTLD+1 근사)을 추론한다.
+    peps.python.org와 docs.python.org가 독립 2개로 세어지던 구멍을 막는다.
+    """
+    org = (src.get("org") or "").strip().lower()
+    if org:
+        return org
+    host = _domain_of(src)
+    parts = [p for p in host.split(".") if p]
+    if len(parts) <= 2:
+        return host
+    tail2 = ".".join(parts[-2:])
+    if tail2 in HOSTING_SUFFIXES or tail2 in SECOND_LEVEL_SUFFIXES:
+        return ".".join(parts[-3:])
+    return tail2
+
+
+def _derived_primary(resolved_sources):
+    """primary_source 파생 계산 — 소스 type이 PRIMARY_SOURCE_TYPES에 들면 1차 도달."""
+    return any(
+        (s.get("type") or "").strip().lower() in PRIMARY_SOURCE_TYPES
+        for s in resolved_sources
+    )
+
+
+def _parse_counter(claim):
+    """
+    counter_search 해석. 반환: (query, urls, legacy_string: bool)
+    구조체 {"query": ..., "urls": [...], "summary": ...}만 검증 가능한 형태로 인정.
+    """
+    c = claim.get("counter_search")
+    if isinstance(c, dict):
+        query = (c.get("query") or "").strip()
+        urls = [u for u in (c.get("urls") or []) if isinstance(u, str) and u.strip()]
+        return query, urls, False
+    if isinstance(c, str) and c.strip():
+        return "", [], True
+    return "", [], False
 
 
 def check_source_registry(sources):
@@ -129,11 +207,11 @@ def classify_claim(claim, sources_by_id):
     """
     ids = claim.get("source_ids") or []
     resolved = [sources_by_id[i] for i in ids if i in sources_by_id]
-    domains = {_domain_of(s) for s in resolved if _domain_of(s)}
-    roots = len(domains) if domains else len(resolved)
+    orgs = {_org_of(s) for s in resolved if _org_of(s)}
+    roots = len(orgs) if orgs else len(resolved)
     grades = {(s.get("quality_rating") or "").strip().upper() for s in resolved}
     high = claim.get("risk") == "high"
-    counter = (claim.get("counter_search") or "").strip()
+    counter_query, _counter_urls, counter_legacy = _parse_counter(claim)
 
     if claim.get("counter_refuted"):
         return "refuted", "counter-search로 반박됨", False
@@ -168,30 +246,50 @@ def classify_claim(claim, sources_by_id):
             True,
         )
 
-    # 1) high-risk인데 반증 검색 자체를 안 함 → 절차 위반 (코드로 강제하는 CoV)
-    if high and not counter:
+    # 1) high-risk인데 반증 검색이 검증 가능한 형태가 아님 → 절차 위반 (코드로 강제하는 CoV)
+    #    자유 문자열 한 줄은 수행 여부를 감사할 수 없으므로 구조체를 요구한다.
+    if high and counter_legacy:
+        return (
+            "unresolved",
+            "counter_search가 자유 문자열 — 구조체 {query, urls, summary} 필요 (감사 불가)",
+            True,
+        )
+    if high and not counter_query:
         return "unresolved", "high-risk인데 counter_search 누락 (CoV 미수행)", True
 
-    # 2) 독립 출처(도메인 기준) 2개 미만
+    # 2) 독립 출처(조직 기준) 2개 미만 — 서브도메인은 같은 조직으로 센다
     if roots < 2:
-        return "unresolved", f"독립 출처(도메인) {roots}개 < 2", False
+        return "unresolved", f"독립 출처(조직) {roots}개 < 2", False
 
     # 3) 출처 충돌 미해소
     if claim.get("conflicting"):
         return "unresolved", "출처 간 충돌 미해소", False
 
-    # 4) high-risk인데 1차 소스 미도달
-    if high and not claim.get("primary_source"):
-        return "unresolved", "high-risk인데 primary_source=false", False
+    # 4) high-risk인데 1차 소스 미도달 — 자기신고가 아니라 소스 type에서 파생 계산
+    if high and not _derived_primary(resolved):
+        return (
+            "unresolved",
+            "high-risk인데 1차 소스 미도달 (PRIMARY_SOURCE_TYPES type 소스 없음)",
+            False,
+        )
 
     # 5) high-risk인데 B등급 이상 출처가 하나도 없음
     if high and not (grades & {"A", "B"}):
         return "unresolved", "high-risk인데 B등급 이상 출처 없음", False
 
+    # 6) high-risk 다중 표면 — 성격이 같은 표면 2개는 동반 오류를 못 잡는다
+    surfaces = {(s.get("type") or "").strip().lower() for s in resolved if s.get("type")}
+    if high and len(surfaces) < 2:
+        return (
+            "unresolved",
+            f"high-risk인데 소스 표면(type) {len(surfaces)}종 < 2 (다중 표면 대조 미충족)",
+            False,
+        )
+
     return "verified", "ok", False
 
 
-def validate(ledger_path, sources_path, out_dir, state_path):
+def validate(ledger_path, sources_path, out_dir, state_path, max_unresolved_ratio=0.5):
     hard_errors = []
 
     sources, src_parse_errs = _read_jsonl(sources_path)
@@ -204,6 +302,12 @@ def validate(ledger_path, sources_path, out_dir, state_path):
 
     verified, unresolved, refuted = [], [], []
     process_violations = []
+
+    # counter_search.urls 대조용 레지스트리 URL 집합 (슬래시/대소문자 정규화)
+    def _norm_url(u):
+        return (u or "").strip().lower().rstrip("/")
+
+    registered_urls = {_norm_url(s.get("url")) for s in sources if s.get("url")}
 
     for i, claim in enumerate(claims):
         # 스키마 하드 검사
@@ -218,11 +322,27 @@ def validate(ledger_path, sources_path, out_dir, state_path):
                 f"claim '{claim.get('claim_id')}': 미등록 source id {unknown}"
             )
             continue
+        # 참조 무결성: counter_search.urls도 레지스트리에 등록돼 있어야 함
+        # (반증 검색을 실제로 했다면 그 결과 소스가 sources.jsonl에 있어야 정상)
+        _cq, counter_urls, _legacy = _parse_counter(claim)
+        bad_counter_urls = [u for u in counter_urls if _norm_url(u) not in registered_urls]
+        if bad_counter_urls:
+            hard_errors.append(
+                f"claim '{claim.get('claim_id')}': counter_search.urls에 미등록 URL "
+                f"{bad_counter_urls} — sources.jsonl에 등록 후 재실행"
+            )
+            continue
 
         status, reason, violation = classify_claim(claim, sources_by_id)
         record = dict(claim)
         record["status"] = status
         record["status_reason"] = reason
+        # primary_source는 자기신고를 버리고 파생값으로 덮어쓴다
+        resolved_srcs = [
+            sources_by_id[sid] for sid in (claim.get("source_ids") or [])
+            if sid in sources_by_id
+        ]
+        record["primary_source"] = _derived_primary(resolved_srcs)
         if status == "verified":
             verified.append(record)
         elif status == "refuted":
@@ -230,19 +350,57 @@ def validate(ledger_path, sources_path, out_dir, state_path):
         else:
             unresolved.append(record)
             if violation:
-                process_violations.append(
-                    f"  - {claim.get('claim_id')}: {reason}"
-                )
+                process_violations.append(f"{claim.get('claim_id')}: {reason}")
 
     # 하드 에러면 산출물 쓰지 않고 즉시 실패 (exit 2)
+    # — 스테일 verified_claims.json이 남아 있으면 실패한 게이트로도 합성이 가능해지므로 삭제한다.
     if hard_errors:
-        _report(hard_errors, [], [], [], [], signature=None)
+        os.makedirs(out_dir, exist_ok=True)
+        _revoke_verified(out_dir, code=2, reasons=hard_errors)
+        if state_path and os.path.exists(state_path):
+            _stamp_state(
+                state_path,
+                passed=False,
+                signature=None,
+                counts=(0, 0, 0),
+                unresolved_ratio=None,
+                blocked="hard_error",
+            )
+        _report(hard_errors, [], [], [], [], signature=None, unresolved_ratio=None)
         return 2
 
     os.makedirs(out_dir, exist_ok=True)
-    _write_json(os.path.join(out_dir, "verified_claims.json"), verified)
     _write_json(os.path.join(out_dir, "unresolved_claims.json"), unresolved)
     _write_json(os.path.join(out_dir, "refuted_claims.json"), refuted)
+
+    total = len(verified) + len(unresolved) + len(refuted)
+    unresolved_ratio = (len(unresolved) / total) if total else 0.0
+
+    # 프로세스 위반이면 합성 allowlist 자체를 만들지 않는다 (데이터 흐름 락).
+    if process_violations:
+        _revoke_verified(out_dir, code=1, reasons=list(process_violations))
+        if state_path and os.path.exists(state_path):
+            _stamp_state(
+                state_path,
+                passed=False,
+                signature=None,
+                counts=(len(verified), len(unresolved), len(refuted)),
+                unresolved_ratio=unresolved_ratio,
+                blocked="process_violation",
+            )
+        _report(
+            hard_errors,
+            verified,
+            unresolved,
+            refuted,
+            process_violations,
+            signature=None,
+            unresolved_ratio=unresolved_ratio,
+        )
+        return 1
+
+    _write_json(os.path.join(out_dir, "verified_claims.json"), verified)
+    _clear_gate_marker(out_dir)
 
     # 서명: verified + 원본 ledger 바이트의 sha256 (체커가 이 데이터로 실제 돌았다는 증거)
     signature = _signature(verified, ledger_path)
@@ -250,9 +408,10 @@ def validate(ledger_path, sources_path, out_dir, state_path):
     if state_path and os.path.exists(state_path):
         _stamp_state(
             state_path,
-            passed=not process_violations,
+            passed=True,
             signature=signature,
             counts=(len(verified), len(unresolved), len(refuted)),
+            unresolved_ratio=unresolved_ratio,
         )
 
     _report(
@@ -262,8 +421,10 @@ def validate(ledger_path, sources_path, out_dir, state_path):
         refuted,
         process_violations,
         signature=signature,
+        unresolved_ratio=unresolved_ratio,
+        max_unresolved_ratio=max_unresolved_ratio,
     )
-    return 1 if process_violations else 0
+    return 0
 
 
 def _signature(verified, ledger_path):
@@ -280,7 +441,48 @@ def _write_json(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def _stamp_state(state_path, passed, signature, counts):
+def _revoke_verified(out_dir, code, reasons):
+    """
+    게이트 실패 시 합성 allowlist를 실제로 없앤다 (데이터 흐름 락의 본체).
+
+    - 이전 실행이 남긴 스테일 verified_claims.json을 삭제한다.
+      (삭제하지 않으면 실패한 게이트로도 합성 입력이 존재해 락이 무력화된다.)
+    - 차단 사유를 outputs/gate_failed.json에 남겨 다음 단계가 이유를 읽을 수 있게 한다.
+    """
+    verified_path = os.path.join(out_dir, "verified_claims.json")
+    removed = False
+    if os.path.exists(verified_path):
+        os.remove(verified_path)
+        removed = True
+    _write_json(
+        os.path.join(out_dir, "gate_failed.json"),
+        {
+            "exit_code": code,
+            "kind": "hard_error" if code == 2 else "process_violation",
+            "reasons": list(reasons),
+            "verified_claims_removed": removed,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "checker": "validate_ledger.py",
+            "next_step": (
+                "데이터(스키마/소스 id/등급)를 고치고 재실행"
+                if code == 2
+                else "누락된 counter_search·execution_proof를 수행해 ledger 갱신 후 재실행"
+            ),
+        },
+    )
+    return removed
+
+
+def _clear_gate_marker(out_dir):
+    """통과 시 이전 실패 마커를 제거한다 (스테일 차단 상태 방지)."""
+    marker = os.path.join(out_dir, "gate_failed.json")
+    if os.path.exists(marker):
+        os.remove(marker)
+
+
+def _stamp_state(
+    state_path, passed, signature, counts, unresolved_ratio=None, blocked=None
+):
     try:
         with open(state_path, "r", encoding="utf-8") as f:
             state = json.load(f)
@@ -292,6 +494,10 @@ def _stamp_state(state_path, passed, signature, counts):
         "verified_count": counts[0],
         "unresolved_count": counts[1],
         "refuted_count": counts[2],
+        "unresolved_ratio": (
+            round(unresolved_ratio, 4) if unresolved_ratio is not None else None
+        ),
+        "blocked": blocked,
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "checker": "validate_ledger.py",
     }
@@ -302,18 +508,45 @@ def _stamp_state(state_path, passed, signature, counts):
     os.replace(tmp, state_path)
 
 
-def _report(hard_errors, verified, unresolved, refuted, process_violations, signature):
+def _report(
+    hard_errors,
+    verified,
+    unresolved,
+    refuted,
+    process_violations,
+    signature,
+    unresolved_ratio=None,
+    max_unresolved_ratio=0.5,
+):
     out = sys.stderr
     print("=== validate_ledger 결과 ===", file=out)
     if hard_errors:
         print(f"\n[HARD ERROR] {len(hard_errors)}건 — 데이터 수정 후 재실행 (exit 2):", file=out)
         for e in hard_errors:
             print(f"  - {e}", file=out)
+        print(
+            "  → verified_claims.json 폐기·gate_failed.json 기록. 합성 입력 없음.",
+            file=out,
+        )
         return
+    ratio_txt = (
+        f"  unresolved_ratio={unresolved_ratio:.0%}" if unresolved_ratio is not None else ""
+    )
     print(
-        f"  verified={len(verified)}  unresolved={len(unresolved)}  refuted={len(refuted)}",
+        f"  verified={len(verified)}  unresolved={len(unresolved)}  refuted={len(refuted)}"
+        f"{ratio_txt}",
         file=out,
     )
+    if (
+        not process_violations
+        and unresolved_ratio is not None
+        and unresolved_ratio > max_unresolved_ratio
+    ):
+        print(
+            f"  [WARN] 미확정 비율 {unresolved_ratio:.0%} > {max_unresolved_ratio:.0%} — "
+            f"통과했지만 근거가 얕다. 보강 검색을 권장한다.",
+            file=out,
+        )
     if process_violations:
         print(
             f"\n[FAIL] 프로세스 위반 {len(process_violations)}건 (exit 1) — "
@@ -321,7 +554,12 @@ def _report(hard_errors, verified, unresolved, refuted, process_violations, sign
             file=out,
         )
         for v in process_violations:
-            print(v, file=out)
+            print(f"  - {v}", file=out)
+        print(
+            "  → verified_claims.json 폐기·gate_failed.json 기록. "
+            "게이트를 통과시키기 전에는 합성 금지(입력 없음).",
+            file=out,
+        )
     else:
         print("  → 통과. 합성은 outputs/verified_claims.json 만 근거로 진행.", file=out)
         if signature:
@@ -352,10 +590,16 @@ def main():
     p.add_argument("--sources", help="sources.jsonl 경로 (override)")
     p.add_argument("--out-dir", help="출력 폴더 (기본: <session>/outputs)")
     p.add_argument("--state", help="state.json 경로 (기본: <session>/state.json)")
+    p.add_argument(
+        "--max-unresolved-ratio",
+        type=float,
+        default=0.5,
+        help="미확정 비율 경고 임계치 (기본 0.5). 초과해도 exit code는 바뀌지 않는다.",
+    )
     args = p.parse_args()
 
     ledger, sources, out_dir, state = _resolve_paths(args)
-    sys.exit(validate(ledger, sources, out_dir, state))
+    sys.exit(validate(ledger, sources, out_dir, state, args.max_unresolved_ratio))
 
 
 if __name__ == "__main__":

@@ -28,13 +28,14 @@ def make_session(tmp_path, returns):
 RET_A = {
     "axis": "redis",
     "sources": [
-        {"url": "https://a.example.com/x", "title": "A", "domain": "a.example.com", "quality_rating": "A", "date": "2026-06-01"},
-        {"url": "https://b.example.org/y", "title": "B", "domain": "b.example.org", "quality_rating": "B", "date": "2026-06-02"},
+        {"url": "https://a.example.com/x", "title": "A", "domain": "a.example.com", "type": "official_docs", "quality_rating": "A", "date": "2026-06-01"},
+        {"url": "https://b.example.org/y", "title": "B", "domain": "b.example.org", "type": "independent_benchmark", "quality_rating": "B", "date": "2026-06-02"},
     ],
     "claims": [
         {"text": "사실1", "risk": "high", "claim_type": "numeric",
          "source_urls": ["https://a.example.com/x", "https://b.example.org/y"],
-         "counter_search": "반증 없음", "primary_source": True, "valid_at": "2026-06-01"}
+         "counter_search": {"query": "사실1 반증 2026", "urls": [], "summary": "반증 없음"},
+         "primary_source": True, "valid_at": "2026-06-01"}
     ],
     "expand_leads": [{"lead": "리드1", "why": "이유", "angle": "각도"}],
     "queries_run": ["redis license 2026", "site:redis.io agpl"],

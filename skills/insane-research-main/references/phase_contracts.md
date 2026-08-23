@@ -173,19 +173,26 @@ sources/sources.jsonl (one source per line):
 ```
 
 ### Claim Ledger (필수 산출 계약)
-`verified_claims`의 각 핵심 주장 레코드는 다음 필드를 포함한다:
+
+장부 스키마의 SSOT는 `scripts/validate_ledger.py`다. `artifacts/claim_ledger.jsonl`에 한 줄당 1레코드:
 ```json
 {
-  "claim": "주장 텍스트",
-  "status": "verified | refuted | unresolved",
-  "confidence": "high | medium | low",
-  "sources": ["src_001", "src_003"],
-  "source_count": 2,
-  "primary_source": true,
-  "counter_search": "반증 검색 1회 결과 요약"
+  "claim_id": "clm_001",
+  "text": "주장 텍스트",
+  "risk": "high | normal",
+  "claim_type": "numeric | legal | causal | descriptive | executable",
+  "source_ids": ["src_001", "src_003"],
+  "counter_search": {"query": "실행한 반증 쿼리", "urls": ["열어본 URL(레지스트리 등록 필수)"], "summary": "결과 요약"},
+  "counter_refuted": false,
+  "conflicting": false,
+  "valid_at": "2026-06-01"
 }
 ```
-**Abstention 강제**: `source_count < 2` OR 미해소 충돌 OR (강한 주장인데 `primary_source=false`) → `status=unresolved`. unresolved/refuted 주장은 본문에서 단정 금지.
+**`status`/`confidence`/`primary_source`는 쓰지 않는다** — status는 게이트가 계산해 `outputs/{verified,unresolved,refuted}_claims.json`에 분류하고, primary_source는 소스 `type`에서 파생한다. counter_search를 자유 문자열로 쓰면 절차 위반(exit 1).
+
+**Abstention 강제**: 독립 조직 2개 미만 OR 미해소 충돌 OR (high-risk인데 1차 type 소스 없음) OR (high-risk인데 소스 type 1종) → `unresolved`. unresolved/refuted 주장은 본문에서 단정 금지.
+
+**게이트 실패 = 합성 차단**: exit≠0이면 `verified_claims.json`이 생성되지 않고(기존 파일도 삭제) `outputs/gate_failed.json`이 남는다. 마커가 있는 동안 보고서를 쓰지 않는다.
 
 ### Success Criteria
 - [ ] Key claims have 2+ sources
@@ -194,7 +201,8 @@ sources/sources.jsonl (one source per line):
 - [ ] Quality distribution reasonable
 - [ ] 모든 핵심 주장이 status(verified/refuted/unresolved)로 분류됨
 - [ ] 각 핵심 주장에 counter_search 결과 존재 (CoV 계약)
-- [ ] unresolved/refuted 주장이 본문 단정에 사용되지 않음
+- [ ] `validate_ledger.py` exit 0 + `state.json.verification.passed=true`
+- [ ] `verify_report.py` exit 0 — 본문이 verified 주장만 `(clm_XXX)`로 단정 인용
 
 ---
 
