@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPT = (
     Path(__file__).resolve().parent.parent
     / "skills"
@@ -86,3 +88,64 @@ def test_dangling_citation_fails(tmp_path):
     md = BASE + "미등록 인용 (src_999).\n"
     r = run_eval(make_session(tmp_path, md))
     assert r.returncode == 1, r.stderr
+
+
+def evaluated_report(session, expected_exit):
+    result = run_eval(session)
+    assert result.returncode == expected_exit, result.stderr
+    return json.loads((session / "outputs" / "eval_report.json").read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("body", [
+    "clm_u10 clm_v10",
+    "clm_u1_extra clm_v1_extra",
+    "clm_u1-extra clm_v1-extra",
+    "clm_u1.extra clm_v1.extra",
+    "prefixclm_u1 prefixclm_v1",
+    "prefix_clm_u1 prefix_clm_v1",
+    "prefix-clm_u1 prefix-clm_v1",
+    "prefix.clm_u1 prefix.clm_v1",
+])
+def test_identifier_substrings_are_not_presence(tmp_path, body):
+    report = evaluated_report(make_session(tmp_path, body), 0)
+    assert report["verdict"] == "PASS"
+    assert report["metrics"]["leak_rate"] == 0.0
+    assert report["metrics"]["verified_coverage_rate"] == 0.0
+
+
+@pytest.mark.parametrize("body", [
+    "clm_u1 clm_v1",
+    "(clm_u1), [clm_v1]",
+    "`clm_u1`\n\t**clm_v1**",
+    "clm_u1. clm_v1.",
+    "clm_u1; clm_v1!",
+])
+def test_exact_identifiers_preserve_leak_and_coverage(tmp_path, body):
+    report = evaluated_report(make_session(tmp_path, body), 1)
+    assert report["verdict"] == "FAIL"
+    assert report["metrics"]["leak_rate"] == 1.0
+    assert report["metrics"]["verified_coverage_rate"] == 1.0
+    assert [claim["claim_id"] for claim in report["leaks"]] == ["clm_u1"]
+
+
+def test_shortened_unverified_assertion_remains_detected(tmp_path):
+    body = BASE + "응답자 91%가 전환 의향을 밝혔다."
+    report = evaluated_report(make_session(tmp_path, body), 1)
+    assert report["metrics"]["leak_rate"] == 1.0
+
+
+@pytest.mark.parametrize("identifier, expected_leaks", [("", 0), ("clm_u1", 1), ("clm_u10", 0)])
+def test_shared_verified_text_preserves_exclusion_and_exact_ids(
+    tmp_path: Path, identifier: str, expected_leaks: int,
+) -> None:
+    session = make_session(tmp_path, BASE + UNRESOLVED_TEXT + " " + identifier)
+    (session / "outputs" / "verified_claims.json").write_text(
+        json.dumps([
+            {"claim_id": "clm_v1", "text": "확정 사실은 버전 9.9.9다", "status": "verified"},
+            {"claim_id": "clm_v2", "text": UNRESOLVED_TEXT, "status": "verified"},
+        ], ensure_ascii=False),
+        encoding="utf-8",
+    )
+    report = evaluated_report(session, expected_leaks)
+    assert report["counts"]["leaks"] == expected_leaks
+    assert report["metrics"]["verified_coverage_rate"] == 1.0

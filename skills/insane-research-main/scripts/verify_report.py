@@ -106,12 +106,14 @@ def scan_report(path):
 def verify(session, report_paths, min_coverage, state_path):
     out_dir = os.path.join(session, "outputs")
     hard, violations, warnings = [], [], []
+    if state_path and os.path.exists(state_path):
+        # An interrupted or failed recheck must not leave an earlier pass usable.
+        _stamp_state(state_path, False, None, None)
 
-    gate_failed = _load_json(os.path.join(out_dir, "gate_failed.json"))
-    if gate_failed:
+    gate_failed_path = os.path.join(out_dir, "gate_failed.json")
+    if os.path.exists(gate_failed_path):
         hard.append(
-            f"게이트 실패 상태 (gate_failed.json: {gate_failed.get('kind')}, "
-            f"{len(gate_failed.get('reasons') or [])}건) — 합성/보고서 작성 자체가 금지된 상태다. "
+            "게이트 실패 상태 (gate_failed.json 존재) — 합성/보고서 작성 자체가 금지된 상태다. "
             f"validate_ledger.py를 통과시킨 뒤 다시 실행."
         )
 
@@ -125,8 +127,13 @@ def verify(session, report_paths, min_coverage, state_path):
 
     if not report_paths:
         hard.append(f"보고서 파일 없음: {out_dir}/*.md")
+    for path in report_paths:
+        if not os.path.isfile(path):
+            hard.append(f"보고서 파일 없음: {path}")
 
     if hard:
+        if state_path and os.path.exists(state_path):
+            _stamp_state(state_path, False, None, None, hard_errors=hard)
         _report(hard, [], [], None, None)
         return 2
 
@@ -180,7 +187,7 @@ def verify(session, report_paths, min_coverage, state_path):
     return 1 if violations else 0
 
 
-def _stamp_state(state_path, passed, coverage, violation_count):
+def _stamp_state(state_path, passed, coverage, violation_count, *, hard_errors=()):
     try:
         with open(state_path, "r", encoding="utf-8") as f:
             state = json.load(f)
@@ -188,11 +195,13 @@ def _stamp_state(state_path, passed, coverage, violation_count):
         return
     state["report_verification"] = {
         "passed": passed,
-        "citation_coverage": round(coverage, 4),
+        "citation_coverage": round(coverage, 4) if coverage is not None else None,
         "violation_count": violation_count,
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "checker": "verify_report.py",
     }
+    if hard_errors:
+        state["report_verification"]["hard_errors"] = list(hard_errors)
     tmp = state_path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)

@@ -107,12 +107,17 @@ def _ngrams(s, n=NGRAM):
     return {s[i:i + n] for i in range(len(s) - n + 1)} if len(s) >= n else set()
 
 
-def _claim_present(claim_text, claim_id, body_blob, body_raw, exclude_blob=""):
-    """주장이 본문에 등장하는가? claim_id 직접 등장 OR (exclude에 없는) 특징 n-gram이 본문에 등장.
-    exclude_blob(예: verified 주장 본문)에 있는 n-gram은 공유 맥락(버전번호 등)이므로 제외 → 오탐 방지."""
-    if claim_id and claim_id in body_raw:
+def _claim_present(
+    claim_text, claim_id, body_blob, body_raw,
+    exclude_grams: set[str] | frozenset[str] = frozenset(),
+):
+    """주장이 본문에 등장하는가? 정확한 claim_id 토큰 등장 OR (exclude에 없는) 특징 n-gram이 본문에 등장.
+    exclude_grams는 평가 단위로 만든 verified 본문의 공유 맥락이므로 반복 생성하지 않는다."""
+    if claim_id and re.search(
+        r"(?<![\w.-])" + re.escape(claim_id) + r"(?![\w-]|\.+[\w-])", body_raw
+    ):
         return True
-    grams = _ngrams(_content(claim_text)) - _ngrams(exclude_blob)
+    grams = _ngrams(_content(claim_text)) - exclude_grams
     return any(g in body_blob for g in grams)
 
 
@@ -138,6 +143,7 @@ def evaluate(out_dir, sources_path):
 
     # verified 주장 본문 = 공유 맥락(버전번호·고유명사 등). leak 판별 시 이 n-gram은 제외.
     verified_blob = _content(" ".join(c.get("text", "") for c in verified))
+    verified_grams = _ngrams(verified_blob) if unresolved or refuted else frozenset()
 
     # 3) leak: unresolved/refuted 주장이 본문에 단정형으로 샜는가
     #    annex(Unresolved/Refuted 섹션)는 계약상 이들을 나열하는 곳이므로 스캔에서 제외.
@@ -147,7 +153,7 @@ def evaluate(out_dir, sources_path):
     for claim in unresolved + refuted:
         cid = claim.get("claim_id", "")
         text = claim.get("text", "")
-        if _claim_present(text, cid, body_no_annex_blob, body_no_annex, exclude_blob=verified_blob):
+        if _claim_present(text, cid, body_no_annex_blob, body_no_annex, exclude_grams=verified_grams):
             leaks.append({"claim_id": cid, "text": text, "status": claim.get("status")})
     pool = len(unresolved) + len(refuted)
     leak_rate = (len(leaks) / pool) if pool else 0.0

@@ -135,3 +135,81 @@ def test_annex_subsection_scope_ends_at_next_top_heading(tmp_path):
     r = run(s)
     assert r.returncode == 1
     assert "미확정 주장 clm_002" in r.stderr
+
+
+def test_failed_recheck_revokes_prior_success(tmp_path: Path) -> None:
+    # Given: a previous CLI verification recorded success.
+    session = make_session(tmp_path, ["clm_001"], ["clm_002"], [], GOOD_REPORT)
+    assert run(session).returncode == 0
+    (session / "outputs" / "verified_claims.json").unlink()
+
+    # When: the same CLI rechecks after its verification input disappears.
+    result = run(session)
+
+    # Then: the exit code and persisted evidence both reject completion.
+    assert result.returncode == 2
+    state = json.loads((session / "state.json").read_text(encoding="utf-8"))
+    evidence = state["report_verification"]
+    assert evidence["passed"] is False
+    assert evidence["citation_coverage"] is None
+    assert evidence["violation_count"] is None
+    assert evidence["hard_errors"]
+    assert state["session_id"] == "fx"
+
+
+def test_gate_marker_revokes_prior_success(tmp_path: Path) -> None:
+    session = make_session(tmp_path, ["clm_001"], ["clm_002"], [], GOOD_REPORT)
+    assert run(session).returncode == 0
+    (session / "outputs" / "gate_failed.json").write_text("{}", encoding="utf-8")
+
+    result = run(session)
+
+    assert result.returncode == 2
+    evidence = json.loads((session / "state.json").read_text())["report_verification"]
+    assert evidence["passed"] is False
+    assert evidence["citation_coverage"] is None
+    assert evidence["hard_errors"]
+
+
+def test_missing_report_revokes_prior_success(tmp_path: Path) -> None:
+    session = make_session(tmp_path, ["clm_001"], ["clm_002"], [], GOOD_REPORT)
+    assert run(session).returncode == 0
+    (session / "outputs" / "01_full_report.md").unlink()
+
+    result = run(session)
+
+    assert result.returncode == 2
+    evidence = json.loads((session / "state.json").read_text())["report_verification"]
+    assert evidence["passed"] is False
+    assert evidence["citation_coverage"] is None
+
+
+def test_explicit_missing_report_revokes_prior_success(tmp_path: Path) -> None:
+    session = make_session(tmp_path, ["clm_001"], ["clm_002"], [], GOOD_REPORT)
+    assert run(session).returncode == 0
+
+    result = run(session, "--report", str(session / "outputs" / "missing.md"))
+
+    assert result.returncode == 2
+    evidence = json.loads((session / "state.json").read_text())["report_verification"]
+    assert evidence["passed"] is False
+    assert evidence["hard_errors"]
+
+
+def test_repaired_input_records_fresh_success(tmp_path: Path) -> None:
+    session = make_session(tmp_path, ["clm_001"], ["clm_002"], [], GOOD_REPORT)
+    assert run(session).returncode == 0
+    verified = session / "outputs" / "verified_claims.json"
+    original = verified.read_text(encoding="utf-8")
+    verified.unlink()
+    assert run(session).returncode == 2
+    verified.write_text(original, encoding="utf-8")
+
+    result = run(session)
+
+    assert result.returncode == 0
+    evidence = json.loads((session / "state.json").read_text())["report_verification"]
+    assert evidence["passed"] is True
+    assert evidence["citation_coverage"] == 1.0
+    assert evidence["violation_count"] == 0
+    assert "hard_errors" not in evidence

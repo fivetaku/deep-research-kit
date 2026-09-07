@@ -634,14 +634,15 @@ When resume is triggered:
 
 1. List available sessions: `RESEARCH/*/state.json`
 2. Load selected session's `state.json`
-3. Check `progress` object for last completed phase
-4. Resume from next pending phase
-5. Continue execution loop
+3. Inspect phases in order and select the earliest `failed`, `in_progress`, or `pending` phase. A later pending phase never takes priority over an earlier failure.
+4. Read that phase's errors and existing artifacts before retrying. Preserve useful work; an interrupted run is incomplete, not completed.
+5. Before delivering a session whose phases are all marked completed, rerun the required Phase 6 ledger/report checks and Phase 7 evaluation. Require `verification.passed=true` with a signature, `report_verification.passed=true`, and an evaluation verdict of `PASS`. A `gate_failed.json` marker, missing evidence, or failed check blocks completion regardless of phase labels.
+6. If verification is missing or fails, return to the relevant verification step and resolve its cause. Never repair the inconsistency by changing a status flag alone.
 
 ```python
 for phase_num in range(1, 8):
     phase_key = f"phase_{phase_num}"
-    if state["progress"][phase_key] == "in_progress":
+    if state["progress"][phase_key] in ("failed", "in_progress"):
         resume_phase(phase_num)
         break
     elif state["progress"][phase_key] == "pending":
@@ -657,7 +658,7 @@ for phase_num in range(1, 8):
 1. Log error to `state.json` errors array
 2. Mark phase as `failed` in progress
 3. Notify user with details
-4. Offer: Retry / Skip / Abort
+4. Offer: Retry / Abort. Skipping is allowed only for explicitly optional work, never the required ledger, report, or evaluation checks. Keep a skipped optional source visible in the coverage limitations.
 
 ### Network Failures
 - Retry up to 3 times with backoff
